@@ -1,106 +1,113 @@
-# Prost kalkulator za sabiranje, oduzimanje, množenje i deljenje dva broja
+# Simple calculator, it can add, subtract, multiply and divide two numbers.
 
 import sys
 
-def sab(x,y):
+def add(x,y):
 	return x + y
 	
-def odu(x,y):
+def sub(x,y):
 	return x - y
 	
-def mno(x,y):
+def mul(x,y):
 	return x * y
 	
-def delj(x, y):
+def div(x, y):
 	return x / y
 	
-def dvaBroja():
+def twoNums():
 	
 	while True:	
 		
 		try:
-			x = int(input("Unesite prvi broj:"))
-			y = int(input("Unesite drugi broj:"))
+			x = int(input("Input the first number:"))
+			y = int(input("Input the second number:"))
 			break
 			
 		except ValueError:
-			print("Unesite BROJ!")
+			print("Please enter a valid number!")
 			print()
 			
 	return x, y		
 	
-def opet():
+def again():
 	
 	while True:
-		print("Da li želite da računate opet?")
-		print("1. Da")
-		print("2. Ne")
+		print("Do you want to calculate again?")
+		print("1. Yes")
+		print("2. No")
 		
 		try:
 			
-			daNe = int(input(": "))
+			yesNo = int(input(": "))
 			
-			if (daNe == 1):
-				print("Ponovno računanje")
+			if (yesNo == 1):
+				print("Program restarting ...")
 				print()
 				break
 				
-			elif (daNe == 2):
-				print("Program se gasi ...")
+			elif (yesNo == 2):
+				print("Program exiting ...")
 				sys.exit()
 				
 			else:
-				print("Unesite broj 1 ili 2")
+				print("Please enter 1 or 2")
 				print()
 				
 		except ValueError:
-			print("Unesite BROJ!")
+			print("Please enter a valid number!")
 			print()
 
+def printInstructions():
+	print("Input the numbers you want to perform the operation on")
+
 while True:
-	print("Izaberite funkciju")
-	print("1. Sabiranje")
-	print("2. Oduzimanje")
-	print("3. Množenje")
-	print("4. Deljenje")
-	print("0. Izlaz")
+	print("Choose a function:")
+	print("1. Add")
+	print("2. Subtract")
+	print("3. Multiply")
+	print("4. Divide")
+	print("0. Exit")
 	
 	try:
 		n = int(input(": "))
 	
 	except ValueError:
-		print("Greška! Morate upisati broj.")
+		print("Error! You must enter a number.")
 		print()
 		n = -1
 	
 	if (n == 0):
-		print("Program se gasi ...")
+		print("Program exiting ...")
 		break
-		
-	print("Unesite brojeve nad kojim vršite operaciju")
-		
-	x,y = dvaBroja()
-	
-	if (n == 1):
-		print(sab(x, y))
+			
+	elif (n == 1):
+		printInstructions()
+		x,y = twoNums()
+		print(add(x, y))
 		
 	elif (n == 2):	
-		print(odu(x, y))
+		printInstructions()
+		x,y = twoNums()
+		print(sub(x, y))
 		
 	elif (n == 3):
-		print(mno(x, y))
+		printInstructions()
+		x,y = twoNums()
+		print(mul(x, y))
 		
 	elif (n == 4):
 		
+		printInstructions()
+		x,y = twoNums()
 		if (y == 0):
-			print("Drugi broj ne može biti 0!")
+			print("The second number cannot be 0!")
 			print()
 		else:
-			print(delj(x, y))
+			print(div(x, y))
 		
 	else:
-		print("Niste uneli vrednost od 0 do 4, pokušajte ponovo!")	
+		print("You did not enter a value from 0 to 4, please try again!")
 		print()
 	
-	opet()
+	again()
 	
