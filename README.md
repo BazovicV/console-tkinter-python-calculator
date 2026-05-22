@@ -28,7 +28,6 @@ I learnt a lot about the Tkinter module, and I'll continue working on this calcu
 ## Future Plans
 
 Here's what the future holds:
- - Fixing C and CE buttons (I accidentally swapped their logic)
  - Adding calculation history
  - Adding a currency converter using the internet to check current exchange rates
  - And probably more!
