@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import numpy
+import sys
 from tkinter import ttk
 from numpy import sin as sin
 from numpy import cos as cos # Not yet implemented fully but just learning how to rename functions.
@@ -9,7 +10,12 @@ from numpy import tan as tan
 
 window = tk.Tk()
 window.title("Calculator")
-window.geometry("550x250")
+
+if sys.platform == "win32": # Detecting the OS
+    window.geometry("475x200")
+else:
+    window.geometry("520x200")
+
 window.resizable(False, False)
 
 style = ttk.Style()
@@ -77,10 +83,10 @@ def calculate(event=None): # event=None - Needed because .bind() sends pressed k
 # Put frames here
 
 resultWrite = tk.Frame(window, border=30, width=200, height=200)
-resultWrite.pack(side="left")
+resultWrite.pack(side="left", fill="both", expand=True)
 
 buttonsInput = tk.Frame(window, border=30, width=150, height=200)
-buttonsInput.pack(side="right")
+buttonsInput.pack(side="right", fill="both", expand=True)
 
 # Put entry and labels here
 
@@ -88,14 +94,14 @@ input_text = tk.Label(resultWrite, text="Input:", font="Fixedsys")
 input_text.pack(side="top")
 
 write = ttk.Entry(resultWrite, textvariable=user_input, style="TEntry")
-write.pack(side="top", fill="x", after=input_text)
+write.pack(side="top", after=input_text)
 
 output_text = tk.Label(resultWrite, text="Result:", font="Fixedsys")
 output_text.pack(side="top", after=write)
 
 result = ttk.Entry(resultWrite, textvariable=output, style="TEntry")
 result.config(state="readonly")
-result.pack(side="top", fill="x", after=output_text)
+result.pack(side="top", after=output_text)
 
 # Put buttons here
 
@@ -162,23 +168,12 @@ clear.grid(row=1, column=4, padx=2, pady=2)
 # Put binds here
 
 window.bind("<Return>", calculate) # .bind - binds key to a function.
-window.bind("0", lambda event:insert_keyboard("0")) 
-# Event needed because Tk needs to send event somewhere, afterwards event is ignored by our function because lambda took the burden
-window.bind("1", lambda event:insert_keyboard("1"))
-window.bind("2", lambda event:insert_keyboard("2"))
-window.bind("3", lambda event:insert_keyboard("3"))
-window.bind("4", lambda event:insert_keyboard("4"))
-window.bind("5", lambda event:insert_keyboard("5"))
-window.bind("6", lambda event:insert_keyboard("6"))
-window.bind("7", lambda event:insert_keyboard("7"))
-window.bind("8", lambda event:insert_keyboard("8"))
-window.bind("9", lambda event:insert_keyboard("9"))
-window.bind("+", lambda event:insert_keyboard("+"))
-window.bind("-", lambda event:insert_keyboard("-"))
-window.bind("*", lambda event:insert_keyboard("*"))
+
+for key in "0123456789+-*.":
+    window.bind(key, lambda event, k=key:insert_keyboard(k) ) # Making k=key to lock in every key
+
 window.bind(":", lambda event:insert_keyboard(":"))
 window.bind("/", lambda event:insert_keyboard(":"))
-window.bind(".", lambda event:insert_keyboard("."))
 window.bind("<BackSpace>", backspace) 
 # backspace() - Doesn't work because () makes it work on startup and then does nothing
 # Instead we write it without the brackets 
