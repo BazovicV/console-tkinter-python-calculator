@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import numpy
+from tkinter import ttk
 from numpy import sin as sin
 from numpy import cos as cos # Not yet implemented fully but just learning how to rename functions.
 from numpy import tan as tan
@@ -9,10 +10,35 @@ from numpy import tan as tan
 window = tk.Tk()
 window.title("Calculator")
 window.geometry("550x250")
-window.resizable(False, False) # Easier than having it adjust for now
+window.resizable(False, False)
 
-logo = tk.PhotoImage(file="calculator.png")
-window.iconphoto(True, logo)
+style = ttk.Style()
+style.theme_use("clam")
+
+style.configure(
+    "TEntry",
+    font=("Fixedsys", 11),
+    bordercolor="black"
+)
+
+style.configure(
+    "TButton",
+    font=("Fixedsys", 11),
+    height=1, 
+    width=3, 
+    bordercolor="black"
+)
+
+style.configure("Blue.TButton", background="lightblue")
+style.configure("White.TButton", background="white")
+style.configure("Gray.TButton", background="lightgray")
+style.configure("Red.TButton", background="tomato")
+
+try:
+    logo = tk.PhotoImage(file="calculator.png")
+    window.iconphoto(True, logo)
+except:
+    pass
 
 user_input = tk.StringVar(window) # A variable that stores what is written in .Entry().
 output = tk.StringVar(window, "0")
@@ -58,80 +84,80 @@ buttonsInput.pack(side="right")
 
 # Put entry and labels here
 
-input_text = tk.Label(resultWrite, text="Input:", font="Fixedsys")
+input_text = ttk.Label(resultWrite, text="Input:", font="Fixedsys")
 input_text.pack(side="top")
 
-write = tk.Entry(resultWrite, textvariable=user_input, font="Fixedsys", highlightbackground="black",)
+write = ttk.Entry(resultWrite, textvariable=user_input, style="TEntry")
 write.pack(side="top", after=input_text)
 
-output_text = tk.Label(resultWrite, text="Result:", font="Fixedsys")
+output_text = ttk.Label(resultWrite, text="Result:", font="Fixedsys")
 output_text.pack(side="top", after=write)
 
-result = tk.Entry(resultWrite, textvariable=output, font="Fixedsys", highlightbackground="black",)
-result.config(state="readonly", readonlybackground="white")
+result = ttk.Entry(resultWrite, textvariable=output, style="TEntry")
+result.config(state="readonly")
 result.pack(side="top", after=output_text)
 
 # Put buttons here
 
 # ---Numbers---
-calc = tk.Button(buttonsInput, text="=", font="Fixedsys", width=1, height=1, background="lightblue", highlightbackground="black", command=calculate)
+calc = ttk.Button(buttonsInput, text="=", style="Blue.TButton", command=calculate)
 calc.grid(row=3, column=2, padx=2, pady=2)
 
-zero = tk.Button(buttonsInput, text="0", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("0")) # lambda - Acts as a sheild so that insert isn't already used on start
+zero = ttk.Button(buttonsInput, text="0", style="White.TButton", command=lambda:insert("0")) # lambda - Acts as a sheild so that insert isn't already used on start
 zero.grid(row=3, column=1, padx=2, pady=2)
 # lambda - Function that gets read on start and the program realises it isn't supposed to be used yet.
 # When we press the button, only then it "unpacks" lambda and does insert
 
-one = tk.Button(buttonsInput, text="1", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("1"))
+one = ttk.Button(buttonsInput, text="1", style="White.TButton", command=lambda:insert("1"))
 one.grid(row=2, column=0, padx=2, pady=2)
 
-two = tk.Button(buttonsInput, text="2", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("2"))
+two = ttk.Button(buttonsInput, text="2", style="White.TButton", command=lambda:insert("2"))
 two.grid(row=2, column=1, padx=2, pady=2)
 
-three = tk.Button(buttonsInput, text="3", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("3"))
+three = ttk.Button(buttonsInput, text="3", style="White.TButton", command=lambda:insert("3"))
 three.grid(row=2, column=2, padx=2, pady=2)
 
-four = tk.Button(buttonsInput, text="4", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("4"))
+four = ttk.Button(buttonsInput, text="4", style="White.TButton", command=lambda:insert("4"))
 four.grid(row=1, column=0, padx=2, pady=2)
 
-five = tk.Button(buttonsInput, text="5", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("5"))
+five = ttk.Button(buttonsInput, text="5", style="White.TButton", command=lambda:insert("5"))
 five.grid(row=1, column=1, padx=2, pady=2)
 
-six = tk.Button(buttonsInput, text="6", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("6"))
+six = ttk.Button(buttonsInput, text="6", style="White.TButton", command=lambda:insert("6"))
 six.grid(row=1, column=2, padx=2, pady=2)
 
-seven = tk.Button(buttonsInput, text="7", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("7"))
+seven = ttk.Button(buttonsInput, text="7", style="White.TButton", command=lambda:insert("7"))
 seven.grid(row=0, column=0, padx=2, pady=2)
 
-eight = tk.Button(buttonsInput, text="8", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("8"))
+eight = ttk.Button(buttonsInput, text="8", style="White.TButton", command=lambda:insert("8"))
 eight.grid(row=0, column=1, padx=2, pady=2)
 
-nine = tk.Button(buttonsInput, text="9", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("9"))
+nine = ttk.Button(buttonsInput, text="9", style="White.TButton", command=lambda:insert("9"))
 nine.grid(row=0, column=2, padx=2, pady=2)
 
 # Operations
-plus = tk.Button(buttonsInput, text="+", font="Fixedsys", width=1, height=1, background="lightgray", highlightbackground="black", command=lambda:insert("+"))
+plus = ttk.Button(buttonsInput, text="+", style="Gray.TButton", command=lambda:insert("+"))
 plus.grid(row=0, column=3, padx=2, pady=2)
 
-minus = tk.Button(buttonsInput, text="-", font="Fixedsys", width=1, height=1, background="lightgray", highlightbackground="black", command=lambda:insert("-"))
+minus = ttk.Button(buttonsInput, text="-", style="Gray.TButton", command=lambda:insert("-"))
 minus.grid(row=1, column=3, padx=2, pady=2)
 
-times = tk.Button(buttonsInput, text="*", font="Fixedsys", width=1, height=1, background="lightgray", highlightbackground="black", command=lambda:insert("*"))
+times = ttk.Button(buttonsInput, text="*", style="Gray.TButton", command=lambda:insert("*"))
 times.grid(row=2, column=3, padx=2, pady=2)
 
-divided = tk.Button(buttonsInput, text=":", font="Fixedsys", width=1, height=1, background="lightgray", highlightbackground="black", command=lambda:insert(":"))
+divided = ttk.Button(buttonsInput, text=":", style="Gray.TButton", command=lambda:insert(":"))
 divided.grid(row=3, column=3, padx=2, pady=2)
 
 # ---Other---
 
-comma = tk.Button(buttonsInput, text=".", font="Fixedsys", width=1, height=1, background="white", highlightbackground="black", command=lambda:insert("."))
+comma = ttk.Button(buttonsInput, text=".", style="White.TButton", command=lambda:insert("."))
 comma.grid(row=3, column=0, padx=2, pady=2)
 
-BackSpace = tk.Button(buttonsInput, text="C", font="Fixedsys", width=1, height=1, background="tomato", highlightbackground="black", command=backspace)
-BackSpace.grid(row=1, column=4, padx=2, pady=2)
+BackSpace = ttk.Button(buttonsInput, text="CE", style="Red.TButton", command=backspace)
+BackSpace.grid(row=0, column=4, padx=2, pady=2)
 
-clear = tk.Button(buttonsInput, text="CE", font="Fixedsys", width=1, height=1, background="tomato", highlightbackground="black", command=clear_all)
-clear.grid(row=0, column=4, padx=2, pady=2)
+clear = ttk.Button(buttonsInput, text="C", style="Red.TButton", command=clear_all)
+clear.grid(row=1, column=4, padx=2, pady=2)
 
 # Put binds here
 
