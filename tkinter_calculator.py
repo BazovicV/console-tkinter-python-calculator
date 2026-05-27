@@ -3,6 +3,7 @@
 import tkinter as tk
 import numpy
 import sys
+import pyperclip
 from tkinter import ttk
 from numpy import sin as sin
 from numpy import cos as cos # Not yet implemented fully but just learning how to rename functions.
@@ -39,6 +40,8 @@ style.configure("Blue.TButton", background="lightblue")
 style.configure("White.TButton", background="white")
 style.configure("Gray.TButton", background="lightgray")
 style.configure("Red.TButton", background="tomato")
+style.configure("History.TButton", background="white", width=7)
+style.configure("Copy.TButton", background="white", width=4)
 
 try:
     logo = tk.PhotoImage(file="calculator.png")
@@ -48,15 +51,18 @@ except:
 
 user_input = tk.StringVar(window) # A variable that stores what is written in .Entry().
 output = tk.StringVar(window, "0")
+history_list = ["No history"]
 
 def backspace(event=None):
     if window.focus_get() != write:
         oldEntry = user_input.get()
         newText = oldEntry[:-1] # Doesnt take the last char of the string
         user_input.set(newText)
+        output.set(0)
 
 def clear_all(event=None):
     user_input.set("")
+    output.set("0")
 
 def insert(num):
     oldEntry = user_input.get()
@@ -76,10 +82,42 @@ def calculate(event=None): # event=None - Needed because .bind() sends pressed k
         expression = user_input.get() # .get - Gets what is currently written in .Entry().
         divisionFix = expression.replace(":", "/")
         result = eval(divisionFix)
-        output.set(result) # .config - Configures the text.
+        output.set(result)
+
+        if divisionFix in history_list[-1]:
+            pass
+
+        else:
+
+            if "No history" in history_list:
+                history_list.clear()
+                history_menu.delete(0)
+
+            if len(history_list) == 10:
+                history_list.pop(0) # pop - Removes by index
+                history_menu.delete(0)
+
+        
+
+            history_list.append(divisionFix)
+            history_menu.add_command(label=history_list[-1], command=lambda expression=history_list[-1]: user_input.set(expression)) # lambda creates a function for all our menu items       
+        
     except:
         output.set("Error")
 
+def clear_history():
+    history_list.clear()
+    history_menu.delete(0, "end")     
+    history_list.append("No history")
+    history_menu.add_command(label=history_list[0])
+
+def copy_history():
+    if "No history" in history_list:
+        pass
+    else:
+        history_string = str(history_list)
+        pyperclip.copy(history_string)
+                       
 # Put frames here
 
 resultWrite = tk.Frame(window, border=30, width=200, height=200)
@@ -143,33 +181,64 @@ nine.grid(row=0, column=2, padx=2, pady=2)
 
 # Operations
 plus = ttk.Button(buttonsInput, text="+", style="Gray.TButton", command=lambda:insert("+"))
-plus.grid(row=0, column=3, padx=2, pady=2)
+plus.grid(row=2, column=3, padx=2, pady=2)
 
 minus = ttk.Button(buttonsInput, text="-", style="Gray.TButton", command=lambda:insert("-"))
-minus.grid(row=1, column=3, padx=2, pady=2)
+minus.grid(row=2, column=4, padx=2, pady=2)
 
 times = ttk.Button(buttonsInput, text="*", style="Gray.TButton", command=lambda:insert("*"))
-times.grid(row=2, column=3, padx=2, pady=2)
+times.grid(row=3, column=3, padx=2, pady=2)
 
 divided = ttk.Button(buttonsInput, text=":", style="Gray.TButton", command=lambda:insert(":"))
-divided.grid(row=3, column=3, padx=2, pady=2)
+divided.grid(row=3, column=4, padx=2, pady=2)
 
 # ---Other---
 
 comma = ttk.Button(buttonsInput, text=".", style="White.TButton", command=lambda:insert("."))
 comma.grid(row=3, column=0, padx=2, pady=2)
 
+open_bracket = ttk.Button(buttonsInput, text="(", style="Gray.TButton", command=lambda:insert("("))
+open_bracket.grid(row=1, column=3, padx=2, pady=2)
+
+close_bracket = ttk.Button(buttonsInput, text=")", style="Gray.TButton", command=lambda:insert(")"))
+close_bracket.grid(row=1, column=4, padx=2, pady=2)
+
 BackSpace = ttk.Button(buttonsInput, text="CE", style="Red.TButton", command=backspace)
 BackSpace.grid(row=0, column=4, padx=2, pady=2)
 
 clear = ttk.Button(buttonsInput, text="C", style="Red.TButton", command=clear_all)
-clear.grid(row=1, column=4, padx=2, pady=2)
+clear.grid(row=0, column=3, padx=2, pady=2)
+
+clear_history_button = ttk.Button(resultWrite, text="CH", style="Red.TButton", command=clear_history)
+
+copy_history_button = ttk.Button(resultWrite, text="Copy", style="Copy.TButton", command=copy_history)
+
+
+if sys.platform == "win32":
+    pass
+else:
+    clear_history_button.place(x=139, y=115)
+    copy_history_button.place(x=83, y=115)
+
+# Put selections here
+
+window.option_add("*tearOff", False) # Stops tearoffs
+
+history = ttk.Menubutton(resultWrite, text="History", style="History.TButton")
+history_menu = tk.Menu(history)
+history_menu.add_command(label=history_list[0])
+history["menu"] = history_menu # Telling Menubutton to use Menu
+
+if sys.platform == "win32":
+    pass
+else:
+    history.place(x=0, y=115)
 
 # Put binds here
 
 window.bind("<Return>", calculate) # .bind - binds key to a function.
 
-for key in "0123456789+-*.":
+for key in "0123456789+-*.()":
     window.bind(key, lambda event, k=key:insert_keyboard(k) ) # Making k=key to lock in every key
 
 window.bind(":", lambda event:insert_keyboard(":"))
