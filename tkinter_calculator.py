@@ -78,29 +78,36 @@ def insert_keyboard(num):
         user_input.set(newText) # .set - Sets the text we wrote into Entry
     
 def calculate(event=None): # event=None - Needed because .bind() sends pressed key data to function, and it's set to None so it doesn't confuse our .button.
+    
+    operations = ["+", "-", "*", "/"]
+    
     try:
         expression = user_input.get() # .get - Gets what is currently written in .Entry().
-        divisionFix = expression.replace(":", "/")
-        result = eval(divisionFix)
-        output.set(result)
 
-        if divisionFix in history_list[-1]:
-            pass
+        if not any((element in expression) for element in operations):
+            output.set("Not an expression")
 
         else:
+            result = eval(expression)
+            output.set(result)
 
-            if "No history" in history_list:
-                history_list.clear()
-                history_menu.delete(0)
+            if expression in history_list[-1]:
+                pass
 
-            if len(history_list) == 10:
-                history_list.pop(0) # pop - Removes by index
-                history_menu.delete(0)
+            else:
+
+                if "No history" in history_list:
+                    history_list.clear()
+                    history_menu.delete(0)
+
+                if len(history_list) == 10:
+                    history_list.pop(0) # pop - Removes by index
+                    history_menu.delete(0)
 
         
 
-            history_list.append(divisionFix)
-            history_menu.add_command(label=history_list[-1], command=lambda expression=history_list[-1]: user_input.set(expression)) # lambda creates a function for all our menu items       
+                history_list.append(expression)
+                history_menu.add_command(label=history_list[-1], command=lambda expression=history_list[-1]: user_input.set(expression)) # lambda creates a function for all our menu items       
         
     except:
         output.set("Error")
@@ -116,6 +123,8 @@ def copy_history():
         pass
     else:
         history_string = str(history_list)
+        for char in "[]'":
+            history_string = history_string.replace(char, "")
         pyperclip.copy(history_string)
                        
 # Put frames here
@@ -189,7 +198,7 @@ minus.grid(row=2, column=4, padx=2, pady=2)
 times = ttk.Button(buttonsInput, text="*", style="Gray.TButton", command=lambda:insert("*"))
 times.grid(row=3, column=3, padx=2, pady=2)
 
-divided = ttk.Button(buttonsInput, text=":", style="Gray.TButton", command=lambda:insert(":"))
+divided = ttk.Button(buttonsInput, text="/", style="Gray.TButton", command=lambda:insert("/"))
 divided.grid(row=3, column=4, padx=2, pady=2)
 
 # ---Other---
@@ -220,7 +229,16 @@ else:
     clear_history_button.place(x=139, y=115)
     copy_history_button.place(x=83, y=115)
 
-# Put selections here
+# Put menus here
+
+settings_menu = tk.Menu(window, bg="white")
+window.config(menu=settings_menu)
+
+mode_menu = tk.Menu(settings_menu, tearoff=0)
+settings_menu.add_cascade(menu=mode_menu, label="Mode")
+mode_menu.add_command(label="Simple")
+mode_menu.add_command(label="Scientific")
+mode_menu.add_command(label="Exchange rates")
 
 window.option_add("*tearOff", False) # Stops tearoffs
 
@@ -238,11 +256,9 @@ else:
 
 window.bind("<Return>", calculate) # .bind - binds key to a function.
 
-for key in "0123456789+-*.()":
+for key in "0123456789+-*/.()":
     window.bind(key, lambda event, k=key:insert_keyboard(k) ) # Making k=key to lock in every key
 
-window.bind(":", lambda event:insert_keyboard(":"))
-window.bind("/", lambda event:insert_keyboard(":"))
 window.bind("<BackSpace>", backspace) 
 # backspace() - Doesn't work because () makes it work on startup and then does nothing
 # Instead we write it without the brackets 
