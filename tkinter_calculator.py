@@ -1,13 +1,16 @@
 # A very simple calculator written in Python! Used to learn Tk and more of python.
 
 import tkinter as tk
-import numpy
+from tkinter import ttk
+
 import sys
 import pyperclip
-from tkinter import ttk
-from numpy import sin as sin
-from numpy import cos as cos # Not yet implemented fully but just learning how to rename functions.
-from numpy import tan as tan
+
+from math import sin as sin
+from math import cos as cos # Not yet implemented fully but just learning how to rename functions.
+from math import tan as tan
+
+# import currency_exchange
 
 window = tk.Tk()
 window.title("Calculator")
@@ -89,7 +92,8 @@ def calculate(event=None): # event=None - Needed because .bind() sends pressed k
 
         else:
             result = eval(expression)
-            output.set(result)
+            result_fix = f'{result:,.15g}'
+            output.set(result_fix)
 
             if expression in history_list[-1]:
                 pass
@@ -126,6 +130,32 @@ def copy_history():
         for char in "[]'":
             history_string = history_string.replace(char, "")
         pyperclip.copy(history_string)
+
+def exchange_rates():
+
+    new_window = tk.Tk()
+    new_window.geometry("200x200")
+    new_window.resizable(False, False)
+
+    currency_list = list(ce.currencies)
+    currency_menu = tk.Menu(new_window)
+
+    for currency in currency_list:
+        currency_menu.add_command(label=currency)
+
+    currency_button1 = ttk.Menubutton(new_window)
+    currency_button1["menu"] = currency_menu
+    currency_button1.pack()
+    
+    first_value = tk.Entry(new_window)
+    first_value.pack()
+
+    second_value = tk.Entry(new_window)
+    second_value.config(state="readonly")
+    second_value.pack()
+
+
+    new_window.mainloop()
                        
 # Put frames here
 
@@ -239,7 +269,7 @@ mode_menu = tk.Menu(settings_menu, tearoff=0)
 settings_menu.add_cascade(menu=mode_menu, label="Mode")
 mode_menu.add_command(label="Simple")
 mode_menu.add_command(label="Scientific")
-mode_menu.add_command(label="Exchange rates")
+mode_menu.add_command(label="Exchange rates", command=exchange_rates)
 
 window.option_add("*tearOff", False) # Stops tearoffs
 
