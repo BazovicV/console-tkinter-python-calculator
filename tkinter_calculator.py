@@ -2,15 +2,13 @@
 
 import tkinter as tk
 from tkinter import ttk
-
 import sys
 import pyperclip
+import currency_exchange as ce
 
 from math import sin as sin
 from math import cos as cos # Not yet implemented fully but just learning how to rename functions.
 from math import tan as tan
-
-# import currency_exchange
 
 window = tk.Tk()
 window.title("Calculator")
@@ -131,31 +129,9 @@ def copy_history():
             history_string = history_string.replace(char, "")
         pyperclip.copy(history_string)
 
-def exchange_rates():
-
-    new_window = tk.Tk()
-    new_window.geometry("200x200")
-    new_window.resizable(False, False)
-
-    currency_list = list(ce.currencies)
-    currency_menu = tk.Menu(new_window)
-
-    for currency in currency_list:
-        currency_menu.add_command(label=currency)
-
-    currency_button1 = ttk.Menubutton(new_window)
-    currency_button1["menu"] = currency_menu
-    currency_button1.pack()
-    
-    first_value = tk.Entry(new_window)
-    first_value.pack()
-
-    second_value = tk.Entry(new_window)
-    second_value.config(state="readonly")
-    second_value.pack()
-
-
-    new_window.mainloop()
+def open_currency_exchange():
+    exchange_window = ce.CurrencyExchange()
+    exchange_window.focus()
                        
 # Put frames here
 
@@ -269,7 +245,7 @@ mode_menu = tk.Menu(settings_menu, tearoff=0)
 settings_menu.add_cascade(menu=mode_menu, label="Mode")
 mode_menu.add_command(label="Simple")
 mode_menu.add_command(label="Scientific")
-mode_menu.add_command(label="Exchange rates", command=exchange_rates)
+mode_menu.add_command(label="Exchange rates", command=open_currency_exchange)
 
 window.option_add("*tearOff", False) # Stops tearoffs
 

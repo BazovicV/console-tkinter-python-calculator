@@ -1,32 +1,89 @@
+import tkinter as tk
+from tkinter import ttk
 import requests
+import pyperclip
 
-url_key = input("Enter your key:") # To use this converter you have to have a key from their site.
-url = f"https://v6.exchangerate-api.com/v6/{url_key}/latest/USD"
+class CurrencyExchange(tk.Toplevel):
+    def __init__(self):
+        super().__init__() # Take everything from parent
 
-requesting = requests.get(url)
-all_info = requesting.json()
-conversion_rates = all_info["conversion_rates"]
+        self.title("Exchange rates")
+        self.geometry("300x250")
+        self.resizable(False, False)
 
-currencies = conversion_rates.keys()
-currencies_values = conversion_rates.values()
+        self.user_input = tk.StringVar(self, "")
 
-def conversion():
+        self.startup_widgets()
 
-    print(currencies)
-    input_name1 = input("Select first currency:")
-    input_amount = float(input("Input how much money you are exchanging: "))
-    input_name2 = input("Enter second currency:")
+    def startup_widgets(self):
+        self.confirm_key_button = tk.Button(self, text="Confirm", command=self.check_internet_connection)
+        self.confirm_key_button.pack()
 
-    if input_name1 in currencies and input_name2 in currencies:
+        self.input_key = tk.Entry(self, textvariable=self.user_input)
+        self.input_key.pack()
 
-        currency_index1 = list(currencies).index(input_name1)
-        currency_index2 = list(currencies).index(input_name2)
-        value1 = float(list(currencies_values)[currency_index1])
-        value2 = float(list(currencies_values)[currency_index2])
+    def check_internet_connection(self):
+        try:
+            requests.head("https://www.google.com")
+            self.check_key(connection=True)
+        
+        except requests.exceptions.ConnectionError:
+            self.user_input.set("Not connected")
+            self.check_key(connection=False)
 
-        value_in_usd = input_amount / value1
-        final_value = value_in_usd * value2
+    def check_key(self, connection):
+        if connection:
+            try:
+                url_key = self.user_input.get()
+                url = f"https://v6.exchangerate-api.com/v6/{url_key}/latest/USD"
 
-        print(f"{final_value:,}")
+                request = requests.get(url)
+                all_info = request.json()
+                self.conversion_rates = all_info["conversion_rates"]
+                
+                self.confirm_key_button.destroy()
+                self.input_key.destroy()
+                self.conversion_widgets()
 
-conversion()
+            except:
+                self.user_input.set("Not a valid key")
+
+    def conversion_widgets(self):
+        self.currencies = list(self.conversion_rates.keys())
+        self.input_number = tk.StringVar(self, "")
+        self.output_number = tk.StringVar(self, "")
+
+        self.starting_currency_combo = ttk.Combobox(self, values=self.currencies, state="readonly")
+        self.finishing_currency_combo = ttk.Combobox(self, values=self.currencies, state="readonly")
+        self.starting_currency_combo.set("USD")
+        self.finishing_currency_combo.set("EUR")
+
+        self.startring_currency_entry = tk.Entry(self, textvariable=self.input_number)
+        self.finishing_currency_entry = tk.Entry(self, textvariable=self.output_number, state="readonly")
+
+        self.confirm_exchange = tk.Button(self, text="Confirm", command=self.conversion)
+        self.confirm_exchange.place(anchor="center", x=100, y=100)
+        self.copy_result = tk.Button(self, text="Copy", command=lambda:pyperclip.copy(self.final_value))
+        self.copy_result.place(anchor="center", x=200, y=100)
+
+        self.starting_currency_combo.grid(row=0, column=1)
+        self.startring_currency_entry.grid(row=0, column=0)
+        self.finishing_currency_combo.grid(row=1, column=1)
+        self.finishing_currency_entry.grid(row=1, column=0)
+
+    def conversion(self):
+        value_index1 = self.starting_currency_combo.current()
+        value_index2 = self.finishing_currency_combo.current()
+
+        self.currency1_value_in_usd = float(list(self.conversion_rates.values())[value_index1])
+        self.currency2_value_in_usd = float(list(self.conversion_rates.values())[value_index2])
+
+        value1 = float(self.input_number.get())
+        usd = value1 / self.currency1_value_in_usd
+        self.final_value = usd * float(self.currency2_value_in_usd)
+
+        self.output_number.set(f"{self.final_value:,.5g}")
+
+if __name__ == "__main__":
+    window = CurrencyExchange()
+    window.mainloop()
