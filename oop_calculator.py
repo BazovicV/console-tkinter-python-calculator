@@ -19,7 +19,7 @@ class CalculatorBody(tk.Tk):
         try:
             self.logo = tk.PhotoImage(file="calculator.png")
             self.iconphoto(True, self.logo)
-        except FileNotFoundError:
+        except tk.TclError:
             pass
 
         self.simple_calculator_buttons = SimpleModeButtons(self) # Sends self to parent
@@ -28,10 +28,37 @@ class CalculatorBody(tk.Tk):
         self.display = Display(self)
         self.display.pack(side="left", fill="both")
 
-    def calculate(self):
+        self.bind("<Return>", self.calculate) # .bind - binds key to a function.
+
+        for key in "0123456789+-*/.()":
+            self.bind(key, lambda event, k=key:self.input_binds(k) ) # Making k=key to lock in every key
+
+        self.bind("<BackSpace>", self.backspace)
+
+    def calculate(self, event=None):
         expression = self.inserted_number.get()
-        self.result = self.evaluator.eval(expression)
-        self.output_number.set(f"{self.result:,.15g}")
+        try:
+            self.result = self.evaluator.eval(expression)
+            self.output_number.set(f"{self.result:,.15g}")
+        except:
+            self.output_number.set("Not an expression")
+
+    def backspace(self, event=None):
+        if event == None or self.focus_get() != self.display.inserted_number_entry:
+            old_entry = self.inserted_number.get()
+            new_entry = old_entry[:-1]
+            self.inserted_number.set(new_entry)
+
+    def input_symbol(self, symbol):
+        old_entry = self.inserted_number.get()
+        new_entry = old_entry + symbol
+        self.inserted_number.set(new_entry)
+
+    def input_binds(self, k):
+        if self.focus_get() != self.display.inserted_number_entry:
+            old_entry = self.inserted_number.get()
+            new_entry = old_entry + k
+            self.inserted_number.set(new_entry)
 
 class Display(tk.Frame):
     def __init__(self, parent):
@@ -71,17 +98,17 @@ class SimpleModeButtons(tk.Frame):
                 if symbols == "=":
                     command = self.parent.calculate
 
+                elif symbols == "C":
+                    command = lambda: self.parent.inserted_number.set("")
+
+                elif symbols == "CE":
+                    command = self.parent.backspace
+                    
                 else:
-                    command = lambda symbol=symbols: self.input_symbol(symbol)
+                    command = lambda symbol=symbols: self.parent.input_symbol(symbol)
                     
                 self.simple_buttons_layout = tk.Button(self, text=symbols, command=command)
                 self.simple_buttons_layout.grid(row=row, column=column)
-
-    def input_symbol(self, symbol):
-        old_entry = self.parent.inserted_number.get()
-        new_entry = old_entry + symbol
-        self.parent.inserted_number.set(new_entry)
-
 
 window = CalculatorBody()
 window.mainloop()
