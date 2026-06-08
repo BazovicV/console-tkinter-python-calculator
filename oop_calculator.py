@@ -1,4 +1,5 @@
 import tkinter as tk
+import pyperclip
 from tkinter import ttk
 from simpleeval import SimpleEval
 
@@ -7,12 +8,13 @@ class CalculatorBody(tk.Tk):
         super().__init__()
         
         self.title("Calculator")
-        self.geometry("520x200")
+        self.geometry("475x200")
         self.resizable(False, False)
         self.option_add("*tearOff", False)
 
         self.inserted_number = tk.StringVar(self, "")
         self.output_number = tk.StringVar(self, "")
+        self.history_list = ['No history']
 
         self.evaluator = SimpleEval()
 
@@ -23,10 +25,10 @@ class CalculatorBody(tk.Tk):
             pass
 
         self.simple_calculator_buttons = SimpleModeButtons(self) # Sends self to parent
-        self.simple_calculator_buttons.pack(side="right", fill="both")
+        self.simple_calculator_buttons.pack(side="right", fill="x", padx=10, pady=10)
 
-        self.display = Display(self)
-        self.display.pack(side="left", fill="both")
+        self.display = DisplayHistory(self)
+        self.display.pack(side="left", fill="y", expand=True, padx=10, pady=20)
 
         self.bind("<Return>", self.calculate) # .bind - binds key to a function.
 
@@ -35,19 +37,52 @@ class CalculatorBody(tk.Tk):
 
         self.bind("<BackSpace>", self.backspace)
 
+        self.style = ttk.Style()
+        self.style.theme_use("clam")
+
+        self.style.configure(
+            "TEntry",
+            font=("Arial", 11),
+            bordercolor="black"
+        )
+
+        self.style.configure(
+            "TButton",
+            font=("Arial", 11),
+            height=1, 
+            width=3, 
+            bordercolor="black"
+        )
+
+        self.style.configure("Blue.TButton", background="lightblue")
+        self.style.configure("White.TButton", background="white")
+        self.style.configure("Gray.TButton", background="lightgray") 
+        self.style.configure("Red.TButton", background="tomato")
+        self.style.configure("History.TButton", background="white", width=6)
+        self.style.configure("Copy.TButton", background="white", width=5)
+
     def calculate(self, event=None):
-        expression = self.inserted_number.get()
-        try:
-            self.result = self.evaluator.eval(expression)
-            self.output_number.set(f"{self.result:,.15g}")
-        except:
-            self.output_number.set("Not an expression")
+        operations = ['+', '-', '*', '/']
+        self.expression = self.inserted_number.get()
+
+        if not any ((element in self.expression) for element in operations):
+            self.output_number.set('Not an expression')
+        
+        else:
+            try:
+                self.result = self.evaluator.eval(self.expression)
+                self.output_number.set(f"{self.result:,.15g}")
+                self.calculation_history()
+
+            except Exception:
+                self.output_number.set("Error")
 
     def backspace(self, event=None):
         if event == None or self.focus_get() != self.display.inserted_number_entry:
             old_entry = self.inserted_number.get()
             new_entry = old_entry[:-1]
             self.inserted_number.set(new_entry)
+            self.output_number.set('0')
 
     def input_symbol(self, symbol):
         old_entry = self.inserted_number.get()
@@ -60,24 +95,70 @@ class CalculatorBody(tk.Tk):
             new_entry = old_entry + k
             self.inserted_number.set(new_entry)
 
-class Display(tk.Frame):
+    def calculation_history(self):
+        if self.expression in self.history_list[-1]:
+            pass
+
+        else:
+            if 'No history' in self.history_list:
+                self.history_list.clear()
+                self.display.history.delete(0)
+            
+            if len(self.history_list) == 10:
+                self.history_list.pop(0)
+                self.display.history.delete(0)
+
+            self.history_list.append(self.expression)
+            self.display.history.add_command(label=self.history_list[-1], command=lambda expression=self.history_list[-1]: (self.inserted_number.set(expression), self.calculate()))
+
+    def copy_history(self):
+        if 'No history' in self.history_list:
+            pass
+
+        else:
+            history_string = str(self.history_list)
+            for char in "[]'":
+                history_string = history_string.replace(char, '')
+            pyperclip.copy(history_string)
+
+    def clear_history(self):
+        self.history_list.clear()
+        self.display.history.delete(0, 'end')
+        self.history_list.append('No history')
+        self.display.history.add_command(label=self.history_list[0])
+
+class DisplayHistory(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
         self.parent = parent
 
-        self.text_before_input = tk.Label(self, text="Input:")
-        self.text_before_input.pack()
+        self.text_before_input = tk.Label(self, text="Input:", font="Arial")
+        self.text_before_input.grid(row=0, column=0, columnspan=3)
 
-        self.inserted_number_entry = tk.Entry(self, textvariable=parent.inserted_number)
-        self.inserted_number_entry.pack()
+        self.inserted_number_entry = ttk.Entry(self, textvariable=parent.inserted_number, style="TEntry")
+        self.inserted_number_entry.grid(row=1, column=0, columnspan=3)
 
-        self.text_before_output = tk.Label(self, text="Output:")
-        self.text_before_output.pack()
+        self.text_before_output = tk.Label(self, text="Output:", font="Arial")
+        self.text_before_output.grid(row=2, column=0, columnspan=3)
 
-        self.output_number_entry = tk.Entry(self, textvariable=parent.output_number)
+        self.output_number_entry = ttk.Entry(self, textvariable=parent.output_number, style="TEntry")
         self.output_number_entry.config(state="readonly")
-        self.output_number_entry.pack()
+        self.output_number_entry.grid(row=3, column=0, columnspan=3)
+
+        self.history_button = ttk.Menubutton(self, text='History', style='History.TButton')
+        self.history = tk.Menu(self.history_button)
+        self.history_button['menu'] = self.history
+
+        self.history.add_command(label=self.parent.history_list[0])
+
+        self.history_button.grid(row=4, column=0, pady=16)
+
+        self.copy_history = ttk.Button(self, text='Copy', command=self.parent.copy_history, style='Copy.TButton')
+        self.copy_history.grid(row=4, column=1, pady=16)
+
+        self.clear_history = ttk.Button(self, text='CH', command=self.parent.clear_history, style='Red.TButton')
+        self.clear_history.grid(row=4, column=2, pady=16)
 
 class SimpleModeButtons(tk.Frame):
     def __init__(self, parent):
@@ -86,20 +167,20 @@ class SimpleModeButtons(tk.Frame):
         self.parent = parent # So it remember what is the parent
 
         self.button_list = [ # Nested list
-            ["7", "8", "9", "C", "CE"],
-            ["4", "5", "6", "(", ")"],
-            ["1", "2", "3", "+", "-"],
-            [".", "0", "=", "*", "/"]
+            [("7", "White.TButton"), ("8", "White.TButton"), ("9", "White.TButton"), ("C", "Red.TButton"), ("CE", "Red.TButton")],
+            [("4", "White.TButton"), ("5", "White.TButton"), ("6", "White.TButton"), ("(", "Gray.TButton"), (")", "Gray.TButton")],
+            [("1", "White.TButton"), ("2", "White.TButton"), ("3", "White.TButton"), ("+", "Gray.TButton"), ("-", "Gray.TButton")],
+            [(".", "White.TButton"), ("0", "White.TButton"), ("=", "Blue.TButton"), ("*", "Gray.TButton"), ("/", "Gray.TButton")]
         ]
 
         for row, row_of_symbols in enumerate(self.button_list):
-            for column, symbols in enumerate(row_of_symbols):
+            for column, (symbols, style) in enumerate(row_of_symbols):
 
                 if symbols == "=":
                     command = self.parent.calculate
 
                 elif symbols == "C":
-                    command = lambda: self.parent.inserted_number.set("")
+                    command = lambda: (self.parent.inserted_number.set(""), self.parent.output_number.set('0'))
 
                 elif symbols == "CE":
                     command = self.parent.backspace
@@ -107,8 +188,8 @@ class SimpleModeButtons(tk.Frame):
                 else:
                     command = lambda symbol=symbols: self.parent.input_symbol(symbol)
                     
-                self.simple_buttons_layout = tk.Button(self, text=symbols, command=command)
-                self.simple_buttons_layout.grid(row=row, column=column)
+                self.simple_buttons_layout = ttk.Button(self, text=symbols, style=style, command=command)
+                self.simple_buttons_layout.grid(row=row, column=column, padx=2, pady=2)
 
 window = CalculatorBody()
 window.mainloop()
