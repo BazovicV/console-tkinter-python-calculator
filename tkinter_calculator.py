@@ -100,7 +100,7 @@ class CalculatorBody(tk.Tk):
             self.inserted_number.set(new_entry)
 
     def calculation_history(self):
-        if self.expression in self.history_list[-1]:
+        if self.expression == self.history_list[-1]:
             pass
 
         else:
