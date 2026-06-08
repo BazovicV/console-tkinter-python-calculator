@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import requests
 import pyperclip
+import configparser
 
 class CurrencyExchange(tk.Toplevel):
     def __init__(self):
@@ -10,16 +11,35 @@ class CurrencyExchange(tk.Toplevel):
         self.title("Exchange rates")
         self.geometry("300x250")
         self.resizable(False, False)
-
+        
         self.user_input = tk.StringVar(self, "")
 
-        self.startup_widgets()
+        self.confirm_key_button = tk.Button(self, text="Confirm", command=self.write_to_ini)
+        self.input_key = tk.Entry(self, textvariable=self.user_input)
+
+        self.api_key = configparser.ConfigParser()
+
+        if not self.api_key.read('api_key.ini'):
+            self.startup_widgets()
+
+            self.api_key['key'] = {'key': ''}
+            with open('api_key.ini', 'w') as config_file:
+                self.api_key.write(config_file)
+
+        else:
+            key = self.api_key["key"]["key"]
+            self.user_input.set(key)
+            self.check_internet_connection()
+
+    def write_to_ini(self):
+        self.api_key['key']['key'] = self.user_input.get()
+        with open('api_key.ini', 'w') as config_file:
+            self.api_key.write(config_file)
+            self.check_internet_connection()
 
     def startup_widgets(self):
-        self.confirm_key_button = tk.Button(self, text="Confirm", command=self.check_internet_connection)
         self.confirm_key_button.pack()
 
-        self.input_key = tk.Entry(self, textvariable=self.user_input)
         self.input_key.pack()
 
     def check_internet_connection(self):
@@ -40,12 +60,15 @@ class CurrencyExchange(tk.Toplevel):
                 request = requests.get(url)
                 all_info = request.json()
                 self.conversion_rates = all_info["conversion_rates"]
+
+                if self.confirm_key_button.winfo_ismapped():
+                    self.confirm_key_button.destroy()
+                    self.input_key.destroy()
                 
-                self.confirm_key_button.destroy()
-                self.input_key.destroy()
                 self.conversion_widgets()
 
-            except:
+            except Exception as e:
+                print(e)
                 self.user_input.set("Not a valid key")
 
     def conversion_widgets(self):
