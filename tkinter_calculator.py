@@ -1,275 +1,216 @@
-# A very simple calculator written in Python! Used to learn Tk and more of python.
-
 import tkinter as tk
-from tkinter import ttk
-import sys
 import pyperclip
 import currency_exchange as ce
+from tkinter import ttk
+from simpleeval import SimpleEval
 
-from math import sin as sin
-from math import cos as cos # Not yet implemented fully but just learning how to rename functions.
-from math import tan as tan
+class CalculatorBody(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        
+        self.title("Calculator")
+        self.geometry("475x200")
+        self.resizable(False, False)
+        self.option_add("*tearOff", False)
 
-window = tk.Tk()
-window.title("Calculator")
+        self.inserted_number = tk.StringVar(self, "")
+        self.output_number = tk.StringVar(self, "")
+        self.history_list = ['No history']
 
-if sys.platform == "win32": # Detecting the OS
-    window.geometry("475x200")
-else:
-    window.geometry("520x200")
+        self.evaluator = SimpleEval()
 
-window.resizable(False, False)
+        try:
+            self.logo = tk.PhotoImage(file="calculator.png")
+            self.iconphoto(True, self.logo)
+        except tk.TclError:
+            pass
 
-style = ttk.Style()
-style.theme_use("clam")
+        self.menu_bar = MenuBar(self)
+        self.config(menu=self.menu_bar)
 
-style.configure(
-    "TEntry",
-    font=("Fixedsys", 11),
-    bordercolor="black"
-)
+        self.simple_calculator_buttons = SimpleModeButtons(self) # Sends self to parent
+        self.simple_calculator_buttons.pack(side="right", fill="x", padx=10, pady=10)
 
-style.configure(
-    "TButton",
-    font=("Fixedsys", 11),
-    height=1, 
-    width=3, 
-    bordercolor="black"
-)
+        self.display = DisplayHistory(self)
+        self.display.pack(side="left", fill="y", expand=True, padx=10, pady=20)
 
-style.configure("Blue.TButton", background="lightblue")
-style.configure("White.TButton", background="white")
-style.configure("Gray.TButton", background="lightgray")
-style.configure("Red.TButton", background="tomato")
-style.configure("History.TButton", background="white", width=7)
-style.configure("Copy.TButton", background="white", width=4)
+        self.bind("<Return>", self.calculate) # .bind - binds key to a function.
 
-try:
-    logo = tk.PhotoImage(file="calculator.png")
-    window.iconphoto(True, logo)
-except:
-    pass
+        for key in "0123456789+-*/.()":
+            self.bind(key, lambda event, k=key:self.input_binds(k) ) # Making k=key to lock in every key
 
-user_input = tk.StringVar(window) # A variable that stores what is written in .Entry().
-output = tk.StringVar(window, "0")
-history_list = ["No history"]
+        self.bind("<BackSpace>", self.backspace)
 
-def backspace(event=None):
-    if window.focus_get() != write:
-        oldEntry = user_input.get()
-        newText = oldEntry[:-1] # Doesnt take the last char of the string
-        user_input.set(newText)
-        output.set(0)
+        self.style = ttk.Style()
+        self.style.theme_use("clam")
 
-def clear_all(event=None):
-    user_input.set("")
-    output.set("0")
+        self.style.configure(
+            "TEntry",
+            font=("Arial", 11),
+            bordercolor="black"
+        )
 
-def insert(num):
-    oldEntry = user_input.get()
-    newText = oldEntry + num
-    user_input.set(newText)
+        self.style.configure(
+            "TButton",
+            font=("Arial", 11),
+            height=1, 
+            width=3, 
+            bordercolor="black"
+        )
 
-def insert_keyboard(num):
-    # focus_get() - tells the program what widget is selected currently
-    # != - If it isn't write, it will work!
-    if window.focus_get() != write:
-        oldEntry = user_input.get()
-        newText = oldEntry + num
-        user_input.set(newText) # .set - Sets the text we wrote into Entry
-    
-def calculate(event=None): # event=None - Needed because .bind() sends pressed key data to function, and it's set to None so it doesn't confuse our .button.
-    
-    operations = ["+", "-", "*", "/"]
-    
-    try:
-        expression = user_input.get() # .get - Gets what is currently written in .Entry().
+        self.style.configure("Blue.TButton", background="lightblue")
+        self.style.configure("White.TButton", background="white")
+        self.style.configure("Gray.TButton", background="lightgray") 
+        self.style.configure("Red.TButton", background="tomato")
+        self.style.configure("History.TButton", background="white", width=6)
+        self.style.configure("Copy.TButton", background="white", width=5)
 
-        if not any((element in expression) for element in operations):
-            output.set("Not an expression")
+    def calculate(self, event=None):
+        operations = ['+', '-', '*', '/']
+        self.expression = self.inserted_number.get()
+
+        if not any ((element in self.expression) for element in operations):
+            self.output_number.set('Not an expression')
+        
+        else:
+            try:
+                self.result = self.evaluator.eval(self.expression)
+                self.output_number.set(f"{self.result:,.15g}")
+                self.calculation_history()
+
+            except Exception:
+                self.output_number.set("Error")
+
+    def backspace(self, event=None):
+        if event == None or self.focus_get() != self.display.inserted_number_entry:
+            old_entry = self.inserted_number.get()
+            new_entry = old_entry[:-1]
+            self.inserted_number.set(new_entry)
+            self.output_number.set('0')
+
+    def input_symbol(self, symbol):
+        old_entry = self.inserted_number.get()
+        new_entry = old_entry + symbol
+        self.inserted_number.set(new_entry)
+
+    def input_binds(self, k):
+        if self.focus_get() != self.display.inserted_number_entry:
+            old_entry = self.inserted_number.get()
+            new_entry = old_entry + k
+            self.inserted_number.set(new_entry)
+
+    def calculation_history(self):
+        if self.expression in self.history_list[-1]:
+            pass
 
         else:
-            result = eval(expression)
-            result_fix = f'{result:,.15g}'
-            output.set(result_fix)
+            if 'No history' in self.history_list:
+                self.history_list.clear()
+                self.display.history.delete(0)
+            
+            if len(self.history_list) == 10:
+                self.history_list.pop(0)
+                self.display.history.delete(0)
 
-            if expression in history_list[-1]:
-                pass
+            self.history_list.append(self.expression)
+            self.display.history.add_command(label=self.history_list[-1], command=lambda expression=self.history_list[-1]: (self.inserted_number.set(expression), self.calculate()))
 
-            else:
+    def copy_history(self):
+        if 'No history' in self.history_list:
+            pass
 
-                if "No history" in history_list:
-                    history_list.clear()
-                    history_menu.delete(0)
+        else:
+            history_string = str(self.history_list)
+            for char in "[]'":
+                history_string = history_string.replace(char, '')
+            pyperclip.copy(history_string)
 
-                if len(history_list) == 10:
-                    history_list.pop(0) # pop - Removes by index
-                    history_menu.delete(0)
+    def clear_history(self):
+        self.history_list.clear()
+        self.display.history.delete(0, 'end')
+        self.history_list.append('No history')
+        self.display.history.add_command(label=self.history_list[0])
 
-        
+    def open_currency_exchange(self):
+        self.exchange_window = ce.CurrencyExchange()
+        self.exchange_window.focus()
 
-                history_list.append(expression)
-                history_menu.add_command(label=history_list[-1], command=lambda expression=history_list[-1]: user_input.set(expression)) # lambda creates a function for all our menu items       
-        
-    except:
-        output.set("Error")
+class DisplayHistory(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
 
-def clear_history():
-    history_list.clear()
-    history_menu.delete(0, "end")     
-    history_list.append("No history")
-    history_menu.add_command(label=history_list[0])
+        self.parent = parent
 
-def copy_history():
-    if "No history" in history_list:
-        pass
-    else:
-        history_string = str(history_list)
-        for char in "[]'":
-            history_string = history_string.replace(char, "")
-        pyperclip.copy(history_string)
+        self.text_before_input = tk.Label(self, text="Input:", font=("Arial", 11))
+        self.text_before_input.grid(row=0, column=0, columnspan=3)
 
-def open_currency_exchange():
-    exchange_window = ce.CurrencyExchange()
-    exchange_window.focus()
-                       
-# Put frames here
+        self.inserted_number_entry = ttk.Entry(self, textvariable=parent.inserted_number, style="TEntry")
+        self.inserted_number_entry.grid(row=1, column=0, columnspan=3)
 
-resultWrite = tk.Frame(window, border=30, width=200, height=200)
-resultWrite.pack(side="left", fill="both", expand=True)
+        self.text_before_output = tk.Label(self, text="Output:", font=("Arial", 11))
+        self.text_before_output.grid(row=2, column=0, columnspan=3)
 
-buttonsInput = tk.Frame(window, border=30, width=150, height=200)
-buttonsInput.pack(side="right", fill="both", expand=True)
+        self.output_number_entry = ttk.Entry(self, textvariable=parent.output_number, style="TEntry")
+        self.output_number_entry.config(state="readonly")
+        self.output_number_entry.grid(row=3, column=0, columnspan=3)
 
-# Put entry and labels here
+        self.history_button = ttk.Menubutton(self, text='History', style='History.TButton')
+        self.history = tk.Menu(self.history_button)
+        self.history_button['menu'] = self.history
 
-input_text = tk.Label(resultWrite, text="Input:", font="Fixedsys")
-input_text.pack(side="top")
+        self.history.add_command(label=self.parent.history_list[0])
 
-write = ttk.Entry(resultWrite, textvariable=user_input, style="TEntry")
-write.pack(side="top", after=input_text)
+        self.history_button.grid(row=4, column=0, pady=26)
 
-output_text = tk.Label(resultWrite, text="Result:", font="Fixedsys")
-output_text.pack(side="top", after=write)
+        self.copy_history = ttk.Button(self, text='Copy', command=self.parent.copy_history, style='Copy.TButton')
+        self.copy_history.grid(row=4, column=1, pady=26)
 
-result = ttk.Entry(resultWrite, textvariable=output, style="TEntry")
-result.config(state="readonly")
-result.pack(side="top", after=output_text)
+        self.clear_history = ttk.Button(self, text='CH', command=self.parent.clear_history, style='Red.TButton')
+        self.clear_history.grid(row=4, column=2, pady=26)
 
-# Put buttons here
+class SimpleModeButtons(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
 
-# ---Numbers---
-calc = ttk.Button(buttonsInput, text="=", style="Blue.TButton", command=calculate)
-calc.grid(row=3, column=2, padx=2, pady=2)
+        self.parent = parent # So it remember what is the parent
 
-zero = ttk.Button(buttonsInput, text="0", style="White.TButton", command=lambda:insert("0")) # lambda - Acts as a sheild so that insert isn't already used on start
-zero.grid(row=3, column=1, padx=2, pady=2)
-# lambda - Function that gets read on start and the program realises it isn't supposed to be used yet.
-# When we press the button, only then it "unpacks" lambda and does insert
+        self.button_list = [ # Nested list
+            [("7", "White.TButton"), ("8", "White.TButton"), ("9", "White.TButton"), ("C", "Red.TButton"), ("CE", "Red.TButton")],
+            [("4", "White.TButton"), ("5", "White.TButton"), ("6", "White.TButton"), ("(", "Gray.TButton"), (")", "Gray.TButton")],
+            [("1", "White.TButton"), ("2", "White.TButton"), ("3", "White.TButton"), ("+", "Gray.TButton"), ("-", "Gray.TButton")],
+            [(".", "White.TButton"), ("0", "White.TButton"), ("=", "Blue.TButton"), ("*", "Gray.TButton"), ("/", "Gray.TButton")]
+        ]
 
-one = ttk.Button(buttonsInput, text="1", style="White.TButton", command=lambda:insert("1"))
-one.grid(row=2, column=0, padx=2, pady=2)
+        for row, row_of_symbols in enumerate(self.button_list):
+            for column, (symbols, style) in enumerate(row_of_symbols):
 
-two = ttk.Button(buttonsInput, text="2", style="White.TButton", command=lambda:insert("2"))
-two.grid(row=2, column=1, padx=2, pady=2)
+                if symbols == "=":
+                    command = self.parent.calculate
 
-three = ttk.Button(buttonsInput, text="3", style="White.TButton", command=lambda:insert("3"))
-three.grid(row=2, column=2, padx=2, pady=2)
+                elif symbols == "C":
+                    command = lambda: (self.parent.inserted_number.set(""), self.parent.output_number.set('0'))
 
-four = ttk.Button(buttonsInput, text="4", style="White.TButton", command=lambda:insert("4"))
-four.grid(row=1, column=0, padx=2, pady=2)
+                elif symbols == "CE":
+                    command = self.parent.backspace
+                    
+                else:
+                    command = lambda symbol=symbols: self.parent.input_symbol(symbol)
+                    
+                self.simple_buttons_layout = ttk.Button(self, text=symbols, style=style, command=command)
+                self.simple_buttons_layout.grid(row=row, column=column, padx=2, pady=2)
 
-five = ttk.Button(buttonsInput, text="5", style="White.TButton", command=lambda:insert("5"))
-five.grid(row=1, column=1, padx=2, pady=2)
+class MenuBar(tk.Menu):
+    def __init__(self, parent):
+        super().__init__(parent)
 
-six = ttk.Button(buttonsInput, text="6", style="White.TButton", command=lambda:insert("6"))
-six.grid(row=1, column=2, padx=2, pady=2)
+        self.parent = parent
 
-seven = ttk.Button(buttonsInput, text="7", style="White.TButton", command=lambda:insert("7"))
-seven.grid(row=0, column=0, padx=2, pady=2)
+        self.config(bg='white')
 
-eight = ttk.Button(buttonsInput, text="8", style="White.TButton", command=lambda:insert("8"))
-eight.grid(row=0, column=1, padx=2, pady=2)
+        self.mode_menu = tk.Menu(self, tearoff=0)
+        self.add_cascade(menu=self.mode_menu, label='Mode', font=('Arial', 11)) 
+        self.mode_menu.add_command(label='Simple')
+        self.mode_menu.add_command(label='Currency exchange', command=self.parent.open_currency_exchange)
 
-nine = ttk.Button(buttonsInput, text="9", style="White.TButton", command=lambda:insert("9"))
-nine.grid(row=0, column=2, padx=2, pady=2)
-
-# Operations
-plus = ttk.Button(buttonsInput, text="+", style="Gray.TButton", command=lambda:insert("+"))
-plus.grid(row=2, column=3, padx=2, pady=2)
-
-minus = ttk.Button(buttonsInput, text="-", style="Gray.TButton", command=lambda:insert("-"))
-minus.grid(row=2, column=4, padx=2, pady=2)
-
-times = ttk.Button(buttonsInput, text="*", style="Gray.TButton", command=lambda:insert("*"))
-times.grid(row=3, column=3, padx=2, pady=2)
-
-divided = ttk.Button(buttonsInput, text="/", style="Gray.TButton", command=lambda:insert("/"))
-divided.grid(row=3, column=4, padx=2, pady=2)
-
-# ---Other---
-
-comma = ttk.Button(buttonsInput, text=".", style="White.TButton", command=lambda:insert("."))
-comma.grid(row=3, column=0, padx=2, pady=2)
-
-open_bracket = ttk.Button(buttonsInput, text="(", style="Gray.TButton", command=lambda:insert("("))
-open_bracket.grid(row=1, column=3, padx=2, pady=2)
-
-close_bracket = ttk.Button(buttonsInput, text=")", style="Gray.TButton", command=lambda:insert(")"))
-close_bracket.grid(row=1, column=4, padx=2, pady=2)
-
-BackSpace = ttk.Button(buttonsInput, text="CE", style="Red.TButton", command=backspace)
-BackSpace.grid(row=0, column=4, padx=2, pady=2)
-
-clear = ttk.Button(buttonsInput, text="C", style="Red.TButton", command=clear_all)
-clear.grid(row=0, column=3, padx=2, pady=2)
-
-clear_history_button = ttk.Button(resultWrite, text="CH", style="Red.TButton", command=clear_history)
-
-copy_history_button = ttk.Button(resultWrite, text="Copy", style="Copy.TButton", command=copy_history)
-
-
-if sys.platform == "win32":
-    clear_history_button.place(x=109, y=107)
-    copy_history_button.place(x=59, y=107)
-else:
-    clear_history_button.place(x=139, y=115)
-    copy_history_button.place(x=83, y=115)
-
-# Put menus here
-
-settings_menu = tk.Menu(window, bg="white")
-window.config(menu=settings_menu)
-
-mode_menu = tk.Menu(settings_menu, tearoff=0)
-settings_menu.add_cascade(menu=mode_menu, label="Mode")
-mode_menu.add_command(label="Simple")
-mode_menu.add_command(label="Scientific")
-mode_menu.add_command(label="Exchange rates", command=open_currency_exchange)
-
-window.option_add("*tearOff", False) # Stops tearoffs
-
-history = ttk.Menubutton(resultWrite, text="History", style="History.TButton")
-history_menu = tk.Menu(history)
-history_menu.add_command(label=history_list[0])
-history["menu"] = history_menu # Telling Menubutton to use Menu
-
-if sys.platform == "win32":
-    history.place(x=-15, y=107)
-else:
-    history.place(x=0, y=115)
-
-# Put binds here
-
-window.bind("<Return>", calculate) # .bind - binds key to a function.
-
-for key in "0123456789+-*/.()":
-    window.bind(key, lambda event, k=key:insert_keyboard(k) ) # Making k=key to lock in every key
-
-window.bind("<BackSpace>", backspace) 
-# backspace() - Doesn't work because () makes it work on startup and then does nothing
-# Instead we write it without the brackets 
-
+window = CalculatorBody()
 window.mainloop()
-
-# Visuals mostly done! And it works fine.
