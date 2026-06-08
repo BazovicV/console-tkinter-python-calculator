@@ -133,13 +133,13 @@ class DisplayHistory(tk.Frame):
 
         self.parent = parent
 
-        self.text_before_input = tk.Label(self, text="Input:", font="Arial")
+        self.text_before_input = tk.Label(self, text="Input:", font=("Arial", 11))
         self.text_before_input.grid(row=0, column=0, columnspan=3)
 
         self.inserted_number_entry = ttk.Entry(self, textvariable=parent.inserted_number, style="TEntry")
         self.inserted_number_entry.grid(row=1, column=0, columnspan=3)
 
-        self.text_before_output = tk.Label(self, text="Output:", font="Arial")
+        self.text_before_output = tk.Label(self, text="Output:", font=("Arial", 11))
         self.text_before_output.grid(row=2, column=0, columnspan=3)
 
         self.output_number_entry = ttk.Entry(self, textvariable=parent.output_number, style="TEntry")
@@ -152,13 +152,13 @@ class DisplayHistory(tk.Frame):
 
         self.history.add_command(label=self.parent.history_list[0])
 
-        self.history_button.grid(row=4, column=0, pady=16)
+        self.history_button.grid(row=4, column=0, pady=26)
 
         self.copy_history = ttk.Button(self, text='Copy', command=self.parent.copy_history, style='Copy.TButton')
-        self.copy_history.grid(row=4, column=1, pady=16)
+        self.copy_history.grid(row=4, column=1, pady=26)
 
         self.clear_history = ttk.Button(self, text='CH', command=self.parent.clear_history, style='Red.TButton')
-        self.clear_history.grid(row=4, column=2, pady=16)
+        self.clear_history.grid(row=4, column=2, pady=26)
 
 class SimpleModeButtons(tk.Frame):
     def __init__(self, parent):
