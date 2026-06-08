@@ -69,6 +69,7 @@ class CurrencyExchange(tk.Toplevel):
 
             except Exception as e:
                 print(e)
+                self.startup_widgets()
                 self.user_input.set("Not a valid key")
 
     def conversion_widgets(self):
