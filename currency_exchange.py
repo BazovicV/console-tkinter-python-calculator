@@ -1,21 +1,28 @@
 import tkinter as tk
-from tkinter import ttk
 import requests
+import webbrowser
 import pyperclip
 import configparser
+from tkinter import ttk
+from style import apply_custom_styles
 
 class CurrencyExchange(tk.Toplevel):
     def __init__(self):
         super().__init__() # Take everything from parent
 
-        self.title("Exchange rates")
-        self.geometry("300x250")
+        self.title("Currency exchange")
+        self.geometry("275x165")
         self.resizable(False, False)
         
         self.user_input = tk.StringVar(self, "")
 
-        self.confirm_key_button = tk.Button(self, text="Confirm", command=self.write_to_ini)
-        self.input_key = tk.Entry(self, textvariable=self.user_input)
+        self.confirm_key_button = ttk.Button(self, text="Confirm", command=self.write_to_ini, style='Confirm.TButton')
+        self.input_key = ttk.Entry(self, textvariable=self.user_input, style='TEntry')
+        self.input_label = tk.Label(self, text='Input API key:', font=('Arial', 11))
+        self.api_key_tip = tk.Label(self, text='Get your API key here:', font=('Arial', 9, 'italic'))
+        self.api_url = tk.Label(self, text='www.exchangerate-api.com', fg='blue', font=('Arial', 9, 'underline'), cursor='hand2')
+
+        apply_custom_styles(self)
 
         self.api_key = configparser.ConfigParser()
 
@@ -37,10 +44,16 @@ class CurrencyExchange(tk.Toplevel):
             self.api_key.write(config_file)
             self.check_internet_connection()
 
-    def startup_widgets(self):
-        self.confirm_key_button.pack()
+    def open_api_url(self, url):
+        webbrowser.open_new(url)
 
+    def startup_widgets(self):
+        self.input_label.pack()
         self.input_key.pack()
+        self.confirm_key_button.pack(pady=5)
+        self.api_key_tip.pack(pady=5)
+        self.api_url.pack()
+        self.api_url.bind('<Button-1>', lambda event: self.open_api_url('https://www.exchangerate-api.com/'))
 
     def check_internet_connection(self):
         try:
@@ -64,6 +77,9 @@ class CurrencyExchange(tk.Toplevel):
                 if self.confirm_key_button.winfo_ismapped():
                     self.confirm_key_button.destroy()
                     self.input_key.destroy()
+                    self.input_label.destroy()
+                    self.api_key_tip.destroy()
+                    self.api_url.destroy()
                 
                 self.conversion_widgets()
 
@@ -75,25 +91,25 @@ class CurrencyExchange(tk.Toplevel):
     def conversion_widgets(self):
         self.currencies = list(self.conversion_rates.keys())
         self.input_number = tk.StringVar(self, "")
-        self.output_number = tk.StringVar(self, "")
+        self.output_number = tk.StringVar(self, "0")
 
-        self.starting_currency_combo = ttk.Combobox(self, values=self.currencies, state="readonly")
-        self.finishing_currency_combo = ttk.Combobox(self, values=self.currencies, state="readonly")
+        self.starting_currency_combo = ttk.Combobox(self, values=self.currencies, state="readonly", style="TCombobox")
+        self.finishing_currency_combo = ttk.Combobox(self, values=self.currencies, state="readonly", style="TCombobox")
         self.starting_currency_combo.set("USD")
         self.finishing_currency_combo.set("EUR")
 
-        self.startring_currency_entry = tk.Entry(self, textvariable=self.input_number)
-        self.finishing_currency_entry = tk.Entry(self, textvariable=self.output_number, state="readonly")
+        self.startring_currency_entry = ttk.Entry(self, textvariable=self.input_number, style="TEntry")
+        self.finishing_currency_entry = ttk.Entry(self, textvariable=self.output_number, state="readonly", style="TEntry")
 
-        self.confirm_exchange = tk.Button(self, text="Confirm", command=self.conversion)
-        self.confirm_exchange.place(anchor="center", x=100, y=100)
-        self.copy_result = tk.Button(self, text="Copy", command=lambda:pyperclip.copy(self.final_value))
-        self.copy_result.place(anchor="center", x=200, y=100)
+        self.confirm_exchange = ttk.Button(self, text="Confirm", command=self.conversion, style="Confirm.TButton")
+        self.confirm_exchange.grid(row=0, column=1, padx=5, pady=5)
+        self.copy_result = ttk.Button(self, text="Copy", command=lambda:pyperclip.copy(self.final_value), style="Copy.TButton")
+        self.copy_result.grid(row=2, column=1, padx=5, pady=5)
 
-        self.starting_currency_combo.grid(row=0, column=1)
-        self.startring_currency_entry.grid(row=0, column=0)
-        self.finishing_currency_combo.grid(row=1, column=1)
-        self.finishing_currency_entry.grid(row=1, column=0)
+        self.starting_currency_combo.grid(row=1, column=0, padx=5, pady=5)
+        self.startring_currency_entry.grid(row=0, column=0, padx=5, pady=5)
+        self.finishing_currency_combo.grid(row=3, column=0, padx=5, pady=5)
+        self.finishing_currency_entry.grid(row=2, column=0, padx=5, pady=5)
 
     def conversion(self):
         value_index1 = self.starting_currency_combo.current()

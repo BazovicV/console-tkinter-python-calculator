@@ -1,6 +1,7 @@
 import tkinter as tk
 import pyperclip
 import currency_exchange as ce
+from style import apply_custom_styles
 from tkinter import ttk
 from simpleeval import SimpleEval
 
@@ -14,7 +15,7 @@ class CalculatorBody(tk.Tk):
         self.option_add("*tearOff", False)
 
         self.inserted_number = tk.StringVar(self, "")
-        self.output_number = tk.StringVar(self, "")
+        self.output_number = tk.StringVar(self, "0")
         self.history_list = ['No history']
 
         self.evaluator = SimpleEval()
@@ -41,29 +42,7 @@ class CalculatorBody(tk.Tk):
 
         self.bind("<BackSpace>", self.backspace)
 
-        self.style = ttk.Style()
-        self.style.theme_use("clam")
-
-        self.style.configure(
-            "TEntry",
-            font=("Arial", 11),
-            bordercolor="black"
-        )
-
-        self.style.configure(
-            "TButton",
-            font=("Arial", 11),
-            height=1, 
-            width=3, 
-            bordercolor="black"
-        )
-
-        self.style.configure("Blue.TButton", background="lightblue")
-        self.style.configure("White.TButton", background="white")
-        self.style.configure("Gray.TButton", background="lightgray") 
-        self.style.configure("Red.TButton", background="tomato")
-        self.style.configure("History.TButton", background="white", width=6)
-        self.style.configure("Copy.TButton", background="white", width=5)
+        apply_custom_styles(self)
 
     def calculate(self, event=None):
         operations = ['+', '-', '*', '/']
