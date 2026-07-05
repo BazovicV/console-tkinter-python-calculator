@@ -17,7 +17,6 @@ class CalculatorBody(tk.Tk):
         self.inserted_number = tk.StringVar(self, "")
         self.output_number = tk.StringVar(self, "0")
         self.history_list = ['No history']
-        self.scientific_expanded = False
 
         self.evaluator = SimpleEval()
 
@@ -32,8 +31,6 @@ class CalculatorBody(tk.Tk):
 
         self.simple_calculator_buttons = SimpleModeButtons(self) # Sends self to parent
         self.simple_calculator_buttons.grid(row=0, column=1, padx=10, pady=10)
-
-        self.scientific_mode = ScientificMode(self)
 
         self.display = DisplayHistory(self)
         self.display.grid(row=0, column=0, padx=10, pady=20)
@@ -120,12 +117,17 @@ class CalculatorBody(tk.Tk):
     def shrink_calculator(self):
         self.geometry("430x200")
 
-        self.scientific_expanded = False
+        try:
+            self.scientific_mode.destroy()
+
+        except AttributeError:
+            pass
 
     def expand_calculator(self):
         self.geometry("430x400")
 
-        self.scientific_expanded = True
+        self.scientific_mode = ScientificMode(self)
+        self.scientific_mode.grid(row=1, column=0, columnspan=2)
 
 class DisplayHistory(tk.Frame):
     def __init__(self, parent):
@@ -196,6 +198,19 @@ class ScientificMode(tk.Frame):
         super().__init__(parent)
 
         self.parent = parent
+
+
+        self.button_list = [
+            ['Deg', 'Inv', 'Ans', 'EXP'],
+            ['sin', 'cos', 'tan', 'cot'],
+            ['ln', 'log', 'π', 'e'],
+            ['x!', 'ʸ√x', 'x²', 'xʸ']
+        ]
+
+        for row, row_of_symbols in enumerate(self.button_list):
+            for column, symbols in enumerate(row_of_symbols):
+                self.scientific_calculator_layout = ttk.Button(self, text=symbols)
+                self.scientific_calculator_layout.grid (row=row, column=column, padx=2, pady=2)
 
 class MenuBar(tk.Menu):
     def __init__(self, parent):
