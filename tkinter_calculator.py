@@ -10,13 +10,14 @@ class CalculatorBody(tk.Tk):
         super().__init__()
         
         self.title("Calculator")
-        self.geometry("475x200")
+        self.geometry("430x200")
         self.resizable(False, False)
         self.option_add("*tearOff", False)
 
         self.inserted_number = tk.StringVar(self, "")
         self.output_number = tk.StringVar(self, "0")
         self.history_list = ['No history']
+        self.scientific_expanded = False
 
         self.evaluator = SimpleEval()
 
@@ -30,10 +31,12 @@ class CalculatorBody(tk.Tk):
         self.config(menu=self.menu_bar)
 
         self.simple_calculator_buttons = SimpleModeButtons(self) # Sends self to parent
-        self.simple_calculator_buttons.pack(side="right", fill="x", padx=10, pady=10)
+        self.simple_calculator_buttons.grid(row=0, column=1, padx=10, pady=10)
+
+        self.scientific_mode = ScientificMode(self)
 
         self.display = DisplayHistory(self)
-        self.display.pack(side="left", fill="y", expand=True, padx=10, pady=20)
+        self.display.grid(row=0, column=0, padx=10, pady=20)
 
         self.bind("<Return>", self.calculate) # .bind - binds key to a function.
 
@@ -114,6 +117,16 @@ class CalculatorBody(tk.Tk):
         self.exchange_window = ce.CurrencyExchange()
         self.exchange_window.focus()
 
+    def shrink_calculator(self):
+        self.geometry("430x200")
+
+        self.scientific_expanded = False
+
+    def expand_calculator(self):
+        self.geometry("430x400")
+
+        self.scientific_expanded = True
+
 class DisplayHistory(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -178,6 +191,12 @@ class SimpleModeButtons(tk.Frame):
                 self.simple_buttons_layout = ttk.Button(self, text=symbols, style=style, command=command)
                 self.simple_buttons_layout.grid(row=row, column=column, padx=2, pady=2)
 
+class ScientificMode(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.parent = parent
+
 class MenuBar(tk.Menu):
     def __init__(self, parent):
         super().__init__(parent)
@@ -188,7 +207,8 @@ class MenuBar(tk.Menu):
 
         self.mode_menu = tk.Menu(self, tearoff=0)
         self.add_cascade(menu=self.mode_menu, label='Mode', font=('Arial', 11)) 
-        self.mode_menu.add_command(label='Simple')
+        self.mode_menu.add_command(label='Simple', command=self.parent.shrink_calculator)
+        self.mode_menu.add_command(label='Scientific', command=self.parent.expand_calculator)
         self.mode_menu.add_command(label='Currency exchange', command=self.parent.open_currency_exchange)
 
 window = CalculatorBody()
