@@ -1,6 +1,7 @@
 import tkinter as tk
 import pyperclip
 import currency_exchange as ce
+import math
 from style import apply_custom_styles
 from tkinter import ttk
 from simpleeval import SimpleEval
@@ -18,7 +19,12 @@ class CalculatorBody(tk.Tk):
         self.output_number = tk.StringVar(self, "0")
         self.history_list = ['No history']
 
-        self.evaluator = SimpleEval()
+        self.evaluator = SimpleEval(functions={
+            'sin': math.sin,
+            'cos': math.cos,
+            'tan': math.tan,
+            'cot': self.cot
+        })
 
         try:
             self.logo = tk.PhotoImage(file="calculator.png")
@@ -33,7 +39,7 @@ class CalculatorBody(tk.Tk):
         self.simple_calculator_buttons.grid(row=0, column=1, padx=10, pady=10)
 
         self.display = DisplayHistory(self)
-        self.display.grid(row=0, column=0, padx=10, pady=20)
+        self.display.grid(row=0, column=0, padx=10, pady=10)
 
         self.bind("<Return>", self.calculate) # .bind - binds key to a function.
 
@@ -45,7 +51,7 @@ class CalculatorBody(tk.Tk):
         apply_custom_styles(self)
 
     def calculate(self, event=None):
-        operations = ['+', '-', '*', '/']
+        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot']
         self.expression = self.inserted_number.get()
 
         if not any ((element in self.expression) for element in operations):
@@ -124,10 +130,13 @@ class CalculatorBody(tk.Tk):
             pass
 
     def expand_calculator(self):
-        self.geometry("430x400")
+        self.geometry("430x375")
 
         self.scientific_mode = ScientificMode(self)
         self.scientific_mode.grid(row=1, column=0, columnspan=2)
+
+    def cot(self, x): 
+        return 1 / math.tan(x)
 
 class DisplayHistory(tk.Frame):
     def __init__(self, parent):
@@ -201,15 +210,15 @@ class ScientificMode(tk.Frame):
 
 
         self.button_list = [
-            ['Deg', 'Inv', 'Ans', 'EXP'],
-            ['sin', 'cos', 'tan', 'cot'],
-            ['ln', 'log', 'π', 'e'],
-            ['x!', 'ʸ√x', 'x²', 'xʸ']
+            [('Deg', 'Scientific.Blue.TButton'), ('Inv', 'Scientific.Blue.TButton'), ('Ans', 'Scientific.Gray.TButton'), ('EXP', 'Scientific.Gray.TButton')],
+            [('sin', 'Scientific.Yellow.TButton'), ('cos', 'Scientific.Yellow.TButton'), ('tan', 'Scientific.Yellow.TButton'), ('cot', 'Scientific.Yellow.TButton')],
+            [('ln', 'Scientific.White.TButton'), ('log', 'Scientific.White.TButton'), ('π', 'Scientific.White.TButton'), ('e', 'Scientific.White.TButton')],
+            [('x!', 'Scientific.White.TButton'), ('ʸ√x', 'Scientific.White.TButton'), ('x²', 'Scientific.White.TButton'), ('xʸ', 'Scientific.White.TButton')]
         ]
 
         for row, row_of_symbols in enumerate(self.button_list):
-            for column, symbols in enumerate(row_of_symbols):
-                self.scientific_calculator_layout = ttk.Button(self, text=symbols)
+            for column, (symbols, style) in enumerate(row_of_symbols):
+                self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=lambda symbol=symbols: self.parent.input_symbol(symbol))
                 self.scientific_calculator_layout.grid (row=row, column=column, padx=2, pady=2)
 
 class MenuBar(tk.Menu):
