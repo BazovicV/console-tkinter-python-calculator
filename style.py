@@ -35,7 +35,7 @@ def apply_custom_styles(window):
     style.configure("Copy.TButton", background="white", width=5)
     style.configure('Confirm.TButton', background='lightblue', width=7)
     # ===Scientific buttons===
-    style.configure('Scientific.Blue.TButton', background='lightblue', width=4)
+    style.configure('Scientific.Blue.TButton', background='lightblue', width=11)
     style.configure('Scientific.White.TButton', background='white', width=4)
     style.configure('Scientific.Gray.TButton', background='lightgray', width=4)
     style.configure('Scientific.Yellow.TButton', background='lightyellow', width=4)

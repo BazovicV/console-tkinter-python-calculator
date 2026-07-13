@@ -8,16 +8,16 @@ from simpleeval import SimpleEval
 
 def sin_deg(x):
     result = math.sin(math.radians(x))
-    return round(result, 10)
+    return round(result, 5)
 
 def cos_deg(x):
     result = math.cos(math.radians(x))
-    return round(result, 10)
+    return round(result, 5)
 
 def tan_deg(x):
     if abs(x % 180) > 90 or abs(x % 180) < 90:
         result = math.tan(math.radians(x))
-        return round(result, 10)
+        return round(result, 5)
     
     if abs(x % 180) == 90:
         return None
@@ -25,14 +25,14 @@ def tan_deg(x):
 def cot_deg(x):
     if x % 180> 0 or x % 180 < 0:
         result = 1 / math.tan(math.radians(x))
-        return round(result, 10)
+        return round(result, 5)
     
     if x % 180 == 0:
         return None
     
 def cot_rad(x):
     result = 1 / math.tan(x)
-    return round(result, 10)
+    return round(result, 5)
 
 class CalculatorBody(tk.Tk):
     def __init__(self):
@@ -46,16 +46,10 @@ class CalculatorBody(tk.Tk):
         self.inserted_number = tk.StringVar(self, "")
         self.output_number = tk.StringVar(self, "0")
         self.history_list = ['No history']
-        self.deg_button = tk.StringVar(self,'Deg')
+        self.result_history = ['']
+        self.deg_button = tk.StringVar(self,'Rad → Deg')
 
-        self.evaluator = SimpleEval(functions={
-            'sin': sin_deg,
-            'cos': cos_deg,
-            'tan': tan_deg,
-            'cot': cot_deg,
-            'log': math.log10,
-            'ln': math.log1p
-        })
+        self.deg2rad_rad2deg()
 
         try:
             self.logo = tk.PhotoImage(file="calculator.png")
@@ -82,7 +76,7 @@ class CalculatorBody(tk.Tk):
         apply_custom_styles(self)
 
     def calculate(self, event=None):
-        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot', 'log', 'ln']
+        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot', 'log', 'ln', 'e', 'π']
         self.expression = self.inserted_number.get()
 
         if not any ((element in self.expression) for element in operations):
@@ -130,7 +124,15 @@ class CalculatorBody(tk.Tk):
                 self.display.history.delete(0)
 
             self.history_list.append(self.expression)
+            self.result_history.append(self.output_number.get())
             self.display.history.add_command(label=self.history_list[-1], command=lambda expression=self.history_list[-1]: (self.inserted_number.set(expression), self.calculate()))
+
+    def ans(self):
+        if self.result_history[-1] == '':
+            pass
+
+        else: 
+            self.input_symbol(self.result_history[-1])
 
     def copy_history(self):
         if 'No history' in self.history_list:
@@ -169,29 +171,33 @@ class CalculatorBody(tk.Tk):
 
     def deg2rad_rad2deg(self):
         
-        if self.deg_button.get() == "Deg":
+        if self.deg_button.get() == 'Deg → Rad':
             self.evaluator = SimpleEval(functions={
-                'sin': math.sin,
-                'cos': math.cos,
-                'tan': math.tan,
+                'sin': lambda num: round(math.sin(num), 5),
+                'cos': lambda num: round(math.cos(num), 5),
+                'tan': lambda num: round(math.tan(num), 5),
                 'cot': cot_rad,
                 'log': math.log10,
-                'ln': math.log1p
+                'ln': math.log1p,
+                'π': math.pi,
+                'e': math.e
             })
 
-            self.deg_button.set('Rad')
+            self.deg_button.set('Rad → Deg')
 
-        elif self.deg_button.get() == "Rad":
+        elif self.deg_button.get() == 'Rad → Deg':
             self.evaluator = SimpleEval(functions={
                 'sin': sin_deg,
                 'cos': cos_deg,
                 'tan': tan_deg,
                 'cot': cot_deg,
                 'log': math.log10,
-                'ln': math.log1p
+                'ln': math.log1p,
+                'π': math.pi,
+                'e': math.e
             })
 
-            self.deg_button.set('Deg')
+            self.deg_button.set('Deg → Rad')
 
 class DisplayHistory(tk.Frame):
     def __init__(self, parent):
@@ -265,7 +271,7 @@ class ScientificMode(tk.Frame):
 
 
         self.button_list = [
-            [(self.parent.deg_button, 'Scientific.Blue.TButton'), ('Inv', 'Scientific.Blue.TButton'), ('Ans', 'Scientific.Gray.TButton'), ('EXP', 'Scientific.Gray.TButton')],
+            [(self.parent.deg_button, 'Scientific.Blue.TButton'), ('Ans', 'Scientific.Gray.TButton'), ('EXP', 'Scientific.Gray.TButton')],
             [('sin', 'Scientific.Yellow.TButton'), ('cos', 'Scientific.Yellow.TButton'), ('tan', 'Scientific.Yellow.TButton'), ('cot', 'Scientific.Yellow.TButton')],
             [('ln', 'Scientific.White.TButton'), ('log', 'Scientific.White.TButton'), ('π', 'Scientific.White.TButton'), ('e', 'Scientific.White.TButton')],
             [('x!', 'Scientific.White.TButton'), ('ʸ√x', 'Scientific.White.TButton'), ('x²', 'Scientific.White.TButton'), ('xʸ', 'Scientific.White.TButton')]
@@ -273,17 +279,31 @@ class ScientificMode(tk.Frame):
 
         for row, row_of_symbols in enumerate(self.button_list):
             for column, (symbols, style) in enumerate(row_of_symbols):
+
                 if symbols == self.parent.deg_button:
                     command = self.parent.deg2rad_rad2deg
+                    columnspan = 2
+                    textvariable = self.parent.deg_button
 
-                    self.scientific_calculator_layout = ttk.Button(self, textvariable=self.parent.deg_button, style=style, command=command)
+                    self.scientific_calculator_layout = ttk.Button(self, textvariable=textvariable, style=style, command=command)
 
+                elif symbols == 'Ans':
+                    command = self.parent.ans
+                    columnspan = 1
+                    column += 1
+
+                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command)
 
                 else:
                     command = lambda symbol=symbols: self.parent.input_symbol(symbol)
+                    columnspan = 1
+
+                    if row == 0:
+                        column += 1
 
                     self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command)
-                self.scientific_calculator_layout.grid (row=row, column=column, padx=2, pady=2)
+
+                self.scientific_calculator_layout.grid (row=row, column=column, columnspan=columnspan, padx=2, pady=2)
 
 
 class MenuBar(tk.Menu):
