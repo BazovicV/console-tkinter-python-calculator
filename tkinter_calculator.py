@@ -52,7 +52,9 @@ class CalculatorBody(tk.Tk):
             'sin': sin_deg,
             'cos': cos_deg,
             'tan': tan_deg,
-            'cot': cot_deg
+            'cot': cot_deg,
+            'log': math.log10,
+            'ln': math.log1p
         })
 
         try:
@@ -80,7 +82,7 @@ class CalculatorBody(tk.Tk):
         apply_custom_styles(self)
 
     def calculate(self, event=None):
-        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot']
+        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot', 'log', 'ln']
         self.expression = self.inserted_number.get()
 
         if not any ((element in self.expression) for element in operations):
@@ -172,7 +174,9 @@ class CalculatorBody(tk.Tk):
                 'sin': math.sin,
                 'cos': math.cos,
                 'tan': math.tan,
-                'cot': cot_rad
+                'cot': cot_rad,
+                'log': math.log10,
+                'ln': math.log1p
             })
 
             self.deg_button.set('Rad')
@@ -182,7 +186,9 @@ class CalculatorBody(tk.Tk):
                 'sin': sin_deg,
                 'cos': cos_deg,
                 'tan': tan_deg,
-                'cot': cot_deg
+                'cot': cot_deg,
+                'log': math.log10,
+                'ln': math.log1p
             })
 
             self.deg_button.set('Deg')
