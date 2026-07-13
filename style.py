@@ -39,3 +39,4 @@ def apply_custom_styles(window):
     style.configure('Scientific.White.TButton', background='white', width=4)
     style.configure('Scientific.Gray.TButton', background='lightgray', width=4)
     style.configure('Scientific.Yellow.TButton', background='lightyellow', width=4)
+    style.configure('Scientific.Green.TButton', background='lightgreen', width=4)

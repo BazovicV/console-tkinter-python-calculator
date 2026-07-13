@@ -76,7 +76,7 @@ class CalculatorBody(tk.Tk):
         apply_custom_styles(self)
 
     def calculate(self, event=None):
-        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot', 'log', 'ln', 'e', 'π']
+        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot', 'log', 'ln', 'e', 'π', '^']
         self.expression = self.inserted_number.get()
 
         if not any ((element in self.expression) for element in operations):
@@ -84,7 +84,8 @@ class CalculatorBody(tk.Tk):
         
         else:
             try:
-                self.result = self.evaluator.eval(self.expression)
+                to_the_power_of = self.expression.replace('^', '**')
+                self.result = self.evaluator.eval(to_the_power_of)
                 self.output_number.set(f"{self.result:,.15g}")
                 self.calculation_history()
 
@@ -121,11 +122,12 @@ class CalculatorBody(tk.Tk):
             
             if len(self.history_list) == 10:
                 self.history_list.pop(0)
+                self.result_history.pop(0)
                 self.display.history.delete(0)
 
             self.history_list.append(self.expression)
             self.result_history.append(self.output_number.get())
-            self.display.history.add_command(label=self.history_list[-1], command=lambda expression=self.history_list[-1]: (self.inserted_number.set(expression), self.calculate()))
+            self.display.history.add_command(label=self.history_list[-1] + " = " + self.result_history[-1], command=lambda expression=self.history_list[-1]: (self.inserted_number.set(expression), self.calculate()))
 
     def ans(self):
         if self.result_history[-1] == '':
@@ -178,7 +180,7 @@ class CalculatorBody(tk.Tk):
                 'tan': lambda num: round(math.tan(num), 5),
                 'cot': cot_rad,
                 'log': math.log10,
-                'ln': math.log1p,
+                'ln': lambda num: math.log(num, math.e),
                 'π': math.pi,
                 'e': math.e
             })
@@ -192,9 +194,9 @@ class CalculatorBody(tk.Tk):
                 'tan': tan_deg,
                 'cot': cot_deg,
                 'log': math.log10,
-                'ln': math.log1p,
+                'ln': lambda num: math.log(num, math.e),
                 'π': math.pi,
-                'e': math.e
+                'e': math.e,
             })
 
             self.deg_button.set('Deg → Rad')
@@ -271,10 +273,10 @@ class ScientificMode(tk.Frame):
 
 
         self.button_list = [
-            [(self.parent.deg_button, 'Scientific.Blue.TButton'), ('Ans', 'Scientific.Gray.TButton'), ('EXP', 'Scientific.Gray.TButton')],
+            [(self.parent.deg_button, 'Scientific.Blue.TButton'), ('Ans', 'Scientific.Green.TButton'), ('EXP', 'Scientific.Green.TButton')],
             [('sin', 'Scientific.Yellow.TButton'), ('cos', 'Scientific.Yellow.TButton'), ('tan', 'Scientific.Yellow.TButton'), ('cot', 'Scientific.Yellow.TButton')],
-            [('ln', 'Scientific.White.TButton'), ('log', 'Scientific.White.TButton'), ('π', 'Scientific.White.TButton'), ('e', 'Scientific.White.TButton')],
-            [('x!', 'Scientific.White.TButton'), ('ʸ√x', 'Scientific.White.TButton'), ('x²', 'Scientific.White.TButton'), ('xʸ', 'Scientific.White.TButton')]
+            [('ln', 'Scientific.Yellow.TButton'), ('log', 'Scientific.Yellow.TButton'), ('π', 'Scientific.White.TButton'), ('e', 'Scientific.White.TButton')],
+            [('x!', 'Scientific.Gray.TButton'), ('ʸ√x', 'Scientific.Gray.TButton'), ('x²', 'Scientific.Gray.TButton'), ('^', 'Scientific.Gray.TButton')]
         ]
 
         for row, row_of_symbols in enumerate(self.button_list):
