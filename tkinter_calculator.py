@@ -100,17 +100,46 @@ class CalculatorBody(tk.Tk):
                 self.output_number.set("Error")
                 print(error.args)
 
+    def get_cursor_pos(self):
+        cursor_pos = self.display.inserted_number_entry.index(tk.INSERT) # INSERT - gets the pos of blinking cursor
+        return cursor_pos
+
     def backspace(self, event=None):
-        if event == None or self.focus_get() != self.display.inserted_number_entry:
-            old_entry = self.inserted_number.get()
+        old_entry = self.inserted_number.get()
+        
+        if event is None and self.focus_get() == self.display.inserted_number_entry:
+            cursor_pos = self.get_cursor_pos()
+
+            new_entry = old_entry[:cursor_pos - 1] + old_entry[cursor_pos:]
+            self.inserted_number.set(new_entry)
+            self.output_number.set('0')
+            self.display.inserted_number_entry.icursor(cursor_pos-1)
+        
+        elif event is None or self.focus_get() != self.display.inserted_number_entry:
             new_entry = old_entry[:-1]
             self.inserted_number.set(new_entry)
             self.output_number.set('0')
 
+
     def input_symbol(self, symbol):
+        self.display.inserted_number_entry.focus_set()
         old_entry = self.inserted_number.get()
-        new_entry = old_entry + symbol
+        symbol_len = len(symbol)
+
+        if self.focus_get() == self.display.inserted_number_entry:
+            cursor_pos = self.get_cursor_pos()
+
+            new_entry = old_entry[:cursor_pos] + symbol + old_entry[cursor_pos:]
+
+        else: 
+            new_entry = old_entry + symbol
+
         self.inserted_number.set(new_entry)
+
+        if symbol_len > 1 and symbol != self.result_history[-1]:
+            self.display.inserted_number_entry.icursor(cursor_pos+symbol_len-1)
+        else:
+            self.display.inserted_number_entry.icursor(cursor_pos+symbol_len)
 
     def input_binds(self, k):
         if self.focus_get() != self.display.inserted_number_entry:
@@ -271,7 +300,7 @@ class SimpleModeButtons(tk.Frame):
                 else:
                     command = lambda symbol=symbols: self.parent.input_symbol(symbol)
                     
-                self.simple_buttons_layout = ttk.Button(self, text=symbols, style=style, command=command)
+                self.simple_buttons_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
                 self.simple_buttons_layout.grid(row=row, column=column, padx=2, pady=2)
 
 class ScientificMode(tk.Frame):
@@ -296,29 +325,35 @@ class ScientificMode(tk.Frame):
                     columnspan = 2
                     textvariable = self.parent.deg_button
 
-                    self.scientific_calculator_layout = ttk.Button(self, textvariable=textvariable, style=style, command=command)
+                    self.scientific_calculator_layout = ttk.Button(self, textvariable=textvariable, style=style, command=command, takefocus=False)
 
                 elif symbols == 'Ans':
                     command = self.parent.ans
                     columnspan = 1
                     column += 1
 
-                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command)
+                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
 
                 elif symbols == 'root':
-                    command = lambda: self.parent.input_symbol('^(1/')
+                    command = lambda: self.parent.input_symbol('^(1/)')
                     columnspan = 1
 
-                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command)
+                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
 
                 else:
-                    command = lambda symbol=symbols: self.parent.input_symbol(symbol)
+                    num_symbols = ('Ans', 'π', 'e', '^2', '^')
+
+                    if symbols in num_symbols:
+                        command = lambda symbol=symbols: self.parent.input_symbol(symbol)
+                    else:
+                        command = lambda symbol=symbols: self.parent.input_symbol(symbol+'()')
+
                     columnspan = 1
 
                     if row == 0:
                         column += 1
 
-                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command)
+                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
 
                 self.scientific_calculator_layout.grid (row=row, column=column, columnspan=columnspan, padx=2, pady=2)
 
