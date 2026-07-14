@@ -34,6 +34,13 @@ def cot_rad(x):
     result = 1 / math.tan(x)
     return round(result, 5)
 
+def factorial(x):
+    try:
+        return math.factorial(x)
+    
+    except:
+        return math.gamma(x + 1)
+
 class CalculatorBody(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -76,7 +83,7 @@ class CalculatorBody(tk.Tk):
         apply_custom_styles(self)
 
     def calculate(self, event=None):
-        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot', 'log', 'ln', 'e', 'π', '^']
+        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot', 'log', 'ln', 'e', 'π', '^', 'fact']
         self.expression = self.inserted_number.get()
 
         if not any ((element in self.expression) for element in operations):
@@ -182,7 +189,8 @@ class CalculatorBody(tk.Tk):
                 'log': math.log10,
                 'ln': lambda num: math.log(num, math.e),
                 'π': math.pi,
-                'e': math.e
+                'e': math.e,
+                'fact': factorial,
             })
 
             self.deg_button.set('Rad → Deg')
@@ -197,6 +205,7 @@ class CalculatorBody(tk.Tk):
                 'ln': lambda num: math.log(num, math.e),
                 'π': math.pi,
                 'e': math.e,
+                'fact': factorial,
             })
 
             self.deg_button.set('Deg → Rad')
@@ -273,10 +282,10 @@ class ScientificMode(tk.Frame):
 
 
         self.button_list = [
-            [(self.parent.deg_button, 'Scientific.Blue.TButton'), ('Ans', 'Scientific.Green.TButton'), ('EXP', 'Scientific.Green.TButton')],
-            [('sin', 'Scientific.Yellow.TButton'), ('cos', 'Scientific.Yellow.TButton'), ('tan', 'Scientific.Yellow.TButton'), ('cot', 'Scientific.Yellow.TButton')],
-            [('ln', 'Scientific.Yellow.TButton'), ('log', 'Scientific.Yellow.TButton'), ('π', 'Scientific.White.TButton'), ('e', 'Scientific.White.TButton')],
-            [('x!', 'Scientific.Gray.TButton'), ('ʸ√x', 'Scientific.Gray.TButton'), ('x²', 'Scientific.Gray.TButton'), ('^', 'Scientific.Gray.TButton')]
+            [(self.parent.deg_button, 'Scientific.Blue.TButton'), ('Inv', 'Scientific.Blue.Small.TButton'), ('Ans', 'Scientific.White.TButton')],
+            [('sin', 'Scientific.Yellow.TButton'), ('cos', 'Scientific.Yellow.TButton'), ('π', 'Scientific.White.TButton'), ('e', 'Scientific.White.TButton')],
+            [('tan', 'Scientific.Yellow.TButton'), ('cot', 'Scientific.Yellow.TButton'), ('fact', 'Scientific.Gray.TButton'), ('root', 'Scientific.Gray.TButton')],
+            [('ln', 'Scientific.Gray.TButton'), ('log', 'Scientific.Gray.TButton'), ('^2', 'Scientific.Gray.TButton'), ('^', 'Scientific.Gray.TButton')]
         ]
 
         for row, row_of_symbols in enumerate(self.button_list):
@@ -293,6 +302,12 @@ class ScientificMode(tk.Frame):
                     command = self.parent.ans
                     columnspan = 1
                     column += 1
+
+                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command)
+
+                elif symbols == 'root':
+                    command = lambda: self.parent.input_symbol('^(1/')
+                    columnspan = 1
 
                     self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command)
 
