@@ -54,7 +54,15 @@ class CalculatorBody(tk.Tk):
         self.output_number = tk.StringVar(self, "0")
         self.history_list = ['No history']
         self.result_history = ['']
+        # --- Scientific string vars ---
         self.deg_button = tk.StringVar(self,'Rad → Deg')
+        self.sin = tk.StringVar(self, 'sin')
+        self.cos = tk.StringVar(self, 'cos')
+        self.tan = tk.StringVar(self, 'tan')
+        self.cot = tk.StringVar(self, 'cot')
+        self.ln = tk.StringVar(self, 'ln')
+        self.log = tk.StringVar(self, 'log')
+        self.fact = tk.StringVar(self, 'fact')
 
         self.deg2rad_rad2deg()
 
@@ -215,6 +223,9 @@ class CalculatorBody(tk.Tk):
                 'cos': lambda num: round(math.cos(num), 5),
                 'tan': lambda num: round(math.tan(num), 5),
                 'cot': cot_rad,
+                'asin': lambda num: round(math.asin(num), 5),
+                'acos': lambda num: round(math.acos(num), 5),
+                'atan': lambda num: round(math.atan(num), 5),
                 'log': math.log10,
                 'ln': lambda num: math.log(num, math.e),
                 'π': math.pi,
@@ -238,6 +249,23 @@ class CalculatorBody(tk.Tk):
             })
 
             self.deg_button.set('Deg → Rad')
+
+    def invert(self):
+        if self.sin.get() == 'sin':
+            self.sin.set('asin')
+            self.cos.set('acos')
+            self.tan.set('atan')
+            self.cot.set('acot')
+            self.ln.set('e^')
+            self.log.set('10^')
+
+        else:
+            self.sin.set('sin')
+            self.cos.set('cos')
+            self.tan.set('tan')
+            self.cot.set('cot')
+            self.ln.set('ln')
+            self.log.set('log')
 
 class DisplayHistory(tk.Frame):
     def __init__(self, parent):
@@ -312,9 +340,9 @@ class ScientificMode(tk.Frame):
 
         self.button_list = [
             [(self.parent.deg_button, 'Scientific.Blue.TButton'), ('Inv', 'Scientific.Blue.Small.TButton'), ('Ans', 'Scientific.White.TButton')],
-            [('sin', 'Scientific.Yellow.TButton'), ('cos', 'Scientific.Yellow.TButton'), ('π', 'Scientific.White.TButton'), ('e', 'Scientific.White.TButton')],
-            [('tan', 'Scientific.Yellow.TButton'), ('cot', 'Scientific.Yellow.TButton'), ('fact', 'Scientific.Gray.TButton'), ('root', 'Scientific.Gray.TButton')],
-            [('ln', 'Scientific.Gray.TButton'), ('log', 'Scientific.Gray.TButton'), ('^2', 'Scientific.Gray.TButton'), ('^', 'Scientific.Gray.TButton')]
+            [(self.parent.sin, 'Scientific.Yellow.TButton'), (self.parent.cos, 'Scientific.Yellow.TButton'), ('π', 'Scientific.White.TButton'), ('e', 'Scientific.White.TButton')],
+            [(self.parent.tan, 'Scientific.Yellow.TButton'), (self.parent.cot, 'Scientific.Yellow.TButton'), (self.parent.fact, 'Scientific.Gray.TButton'), ('root', 'Scientific.Gray.TButton')],
+            [(self.parent.ln, 'Scientific.Gray.TButton'), (self.parent.log, 'Scientific.Gray.TButton'), ('^2', 'Scientific.Gray.TButton'), ('^', 'Scientific.Gray.TButton')]
         ]
 
         for row, row_of_symbols in enumerate(self.button_list):
@@ -340,20 +368,26 @@ class ScientificMode(tk.Frame):
 
                     self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
 
+                elif symbols == 'Inv':
+                    command = self.parent.invert
+                    columnspan = 1
+                    column += 1
+
+                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
+
                 else:
                     num_symbols = ('Ans', 'π', 'e', '^2', '^')
 
                     if symbols in num_symbols:
                         command = lambda symbol=symbols: self.parent.input_symbol(symbol)
+
+                        self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
                     else:
-                        command = lambda symbol=symbols: self.parent.input_symbol(symbol+'()')
+                        command = lambda symbol=symbols: self.parent.input_symbol(symbol.get()+'()')
+
+                        self.scientific_calculator_layout = ttk.Button(self, textvariable=symbols, style=style, command=command, takefocus=False)
 
                     columnspan = 1
-
-                    if row == 0:
-                        column += 1
-
-                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
 
                 self.scientific_calculator_layout.grid (row=row, column=column, columnspan=columnspan, padx=2, pady=2)
 
