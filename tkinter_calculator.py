@@ -48,7 +48,7 @@ def acot_deg(x: int | float) -> int | float:
     if x > 0:
         return round(math.atan(1/x) * (180 / math.pi), 5)
     else:
-        return round((math.atan(1/x) + 180) * (180 / math.pi), 5)
+        return round((math.atan(1/x) + math.pi) * (180 / math.pi), 5)
     
 def acot_rad(x: int | float) -> int | float:
     if x > 0:
