@@ -2,6 +2,7 @@ import tkinter as tk
 import pyperclip
 import currency_exchange as ce
 import math
+import random
 from style import apply_custom_styles
 from tkinter import ttk
 from simpleeval import SimpleEval
@@ -34,6 +35,27 @@ def cot_rad(x):
     result = 1 / math.tan(x)
     return round(result, 5)
 
+def asin_deg(x: int | float) -> int | float:
+    return round(math.asin(x) * (180 / math.pi), 5)
+
+def acos_deg(x: int | float) -> int | float:
+    return round(math.acos(x) * (180 / math.pi))
+
+def atan_deg(x: int | float) -> int | float:
+    return round(math.atan(x) * (180 / math.pi))
+
+def acot_deg(x: int | float) -> int | float:
+    if x > 0:
+        return round(math.atan(1/x) * (180 / math.pi), 5)
+    else:
+        return round((math.atan(1/x) + 180) * (180 / math.pi), 5)
+    
+def acot_rad(x: int | float) -> int | float:
+    if x > 0:
+        return round(math.atan(1/x), 5)
+    else:
+        return round((math.atan(1/x) + math.pi), 5)
+
 def factorial(x):
     try:
         return math.factorial(x)
@@ -63,6 +85,8 @@ class CalculatorBody(tk.Tk):
         self.ln = tk.StringVar(self, 'ln')
         self.log = tk.StringVar(self, 'log')
         self.fact = tk.StringVar(self, 'fact')
+        self.squared = tk.StringVar(self, '^2')
+        self.ans_rnd = tk.StringVar(self, 'Ans')
 
         self.deg2rad_rad2deg()
 
@@ -91,7 +115,7 @@ class CalculatorBody(tk.Tk):
         apply_custom_styles(self)
 
     def calculate(self, event=None):
-        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot', 'log', 'ln', 'e', 'π', '^', 'fact']
+        operations = ['+', '-', '*', '/', 'sin', 'cos', 'tan', 'cot', 'log', 'ln', 'e', 'π', '^', 'fact', 'sqrt']
         self.expression = self.inserted_number.get()
 
         if not any ((element in self.expression) for element in operations):
@@ -174,11 +198,16 @@ class CalculatorBody(tk.Tk):
             self.display.history.add_command(label=self.history_list[-1] + " = " + self.result_history[-1], command=lambda expression=self.history_list[-1]: (self.inserted_number.set(expression), self.calculate()))
 
     def ans(self):
-        if self.result_history[-1] == '':
-            pass
+        if self.ans_rnd.get() == 'Ans':
+            if self.result_history[-1] == '':
+                pass
 
-        else: 
-            self.input_symbol(self.result_history[-1])
+            else: 
+                self.input_symbol(self.result_history[-1])
+        
+        else:
+            random_number: str = str(round(random.random(), 5))
+            self.input_symbol(random_number)
 
     def copy_history(self):
         if 'No history' in self.history_list:
@@ -226,11 +255,13 @@ class CalculatorBody(tk.Tk):
                 'asin': lambda num: round(math.asin(num), 5),
                 'acos': lambda num: round(math.acos(num), 5),
                 'atan': lambda num: round(math.atan(num), 5),
+                'acot': acot_rad,
                 'log': math.log10,
                 'ln': lambda num: math.log(num, math.e),
                 'π': math.pi,
                 'e': math.e,
                 'fact': factorial,
+                'sqrt': math.sqrt,
             })
 
             self.deg_button.set('Rad → Deg')
@@ -241,11 +272,16 @@ class CalculatorBody(tk.Tk):
                 'cos': cos_deg,
                 'tan': tan_deg,
                 'cot': cot_deg,
+                'asin': asin_deg,
+                'acos': acos_deg,
+                'atan': atan_deg,
+                'acot': acot_deg,
                 'log': math.log10,
                 'ln': lambda num: math.log(num, math.e),
                 'π': math.pi,
                 'e': math.e,
                 'fact': factorial,
+                'sqrt': math.sqrt,
             })
 
             self.deg_button.set('Deg → Rad')
@@ -258,6 +294,8 @@ class CalculatorBody(tk.Tk):
             self.cot.set('acot')
             self.ln.set('e^')
             self.log.set('10^')
+            self.squared.set('sqrt')
+            self.ans_rnd.set('Rnd')
 
         else:
             self.sin.set('sin')
@@ -266,6 +304,8 @@ class CalculatorBody(tk.Tk):
             self.cot.set('cot')
             self.ln.set('ln')
             self.log.set('log')
+            self.squared.set('^2')
+            self.ans_rnd.set('Ans')
 
 class DisplayHistory(tk.Frame):
     def __init__(self, parent):
@@ -339,10 +379,10 @@ class ScientificMode(tk.Frame):
 
 
         self.button_list = [
-            [(self.parent.deg_button, 'Scientific.Blue.TButton'), ('Inv', 'Scientific.Blue.Small.TButton'), ('Ans', 'Scientific.White.TButton')],
+            [(self.parent.deg_button, 'Scientific.Blue.TButton'), ('Inv', 'Scientific.Blue.Small.TButton'), (self.parent.ans_rnd, 'Scientific.White.TButton')],
             [(self.parent.sin, 'Scientific.Yellow.TButton'), (self.parent.cos, 'Scientific.Yellow.TButton'), ('π', 'Scientific.White.TButton'), ('e', 'Scientific.White.TButton')],
             [(self.parent.tan, 'Scientific.Yellow.TButton'), (self.parent.cot, 'Scientific.Yellow.TButton'), (self.parent.fact, 'Scientific.Gray.TButton'), ('root', 'Scientific.Gray.TButton')],
-            [(self.parent.ln, 'Scientific.Gray.TButton'), (self.parent.log, 'Scientific.Gray.TButton'), ('^2', 'Scientific.Gray.TButton'), ('^', 'Scientific.Gray.TButton')]
+            [(self.parent.ln, 'Scientific.Gray.TButton'), (self.parent.log, 'Scientific.Gray.TButton'), (self.parent.squared, 'Scientific.Gray.TButton'), ('^', 'Scientific.Gray.TButton')]
         ]
 
         for row, row_of_symbols in enumerate(self.button_list):
@@ -355,12 +395,12 @@ class ScientificMode(tk.Frame):
 
                     self.scientific_calculator_layout = ttk.Button(self, textvariable=textvariable, style=style, command=command, takefocus=False)
 
-                elif symbols == 'Ans':
+                elif symbols == self.parent.ans_rnd:
                     command = self.parent.ans
                     columnspan = 1
                     column += 1
 
-                    self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
+                    self.scientific_calculator_layout = ttk.Button(self, textvariable=symbols, style=style, command=command, takefocus=False)
 
                 elif symbols == 'root':
                     command = lambda: self.parent.input_symbol('^(1/)')
@@ -376,7 +416,7 @@ class ScientificMode(tk.Frame):
                     self.scientific_calculator_layout = ttk.Button(self, text=symbols, style=style, command=command, takefocus=False)
 
                 else:
-                    num_symbols = ('Ans', 'π', 'e', '^2', '^')
+                    num_symbols = ('π', 'e', '^')
 
                     if symbols in num_symbols:
                         command = lambda symbol=symbols: self.parent.input_symbol(symbol)
