@@ -158,6 +158,9 @@ class CalculatorBody(tk.Tk):
         old_entry = self.inserted_number.get()
         symbol_len = len(symbol)
 
+        if symbol == '^2()':
+            symbol = symbol[:2]
+
         if self.focus_get() == self.display.inserted_number_entry:
             cursor_pos = self.get_cursor_pos()
 
