@@ -148,7 +148,7 @@ class CalculatorBody(tk.Tk):
             self.inserted_number.set(new_entry)
 
     def calculation_history(self):
-        if self.expression == self.history_list[-1]:
+        if self.expression == self.history_list[-1] and self.display.output_number_entry.get() == self.result_history[-1]:
             pass
 
         else:
@@ -372,5 +372,6 @@ class MenuBar(tk.Menu):
         self.mode_menu.add_command(label='Scientific', command=self.parent.expand_calculator)
         self.mode_menu.add_command(label='Currency exchange', command=self.parent.open_currency_exchange)
 
-window = CalculatorBody()
-window.mainloop()
+if __name__ == '__main__':
+    window = CalculatorBody()
+    window.mainloop()
